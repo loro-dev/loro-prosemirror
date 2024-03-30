@@ -87,7 +87,7 @@ export function createNodeFromLoroObj(
       }
 
       try {
-        const marks = [];
+        const marks: Mark[] = [];
         for (const [markName, mark] of Object.entries(delta.attributes ?? {})) {
           marks.push(schema.mark(markName, mark));
         }
