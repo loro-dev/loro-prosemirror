@@ -396,7 +396,7 @@ export function getLoroMapAttributes(
   obj: LoroMap,
   mapping: LoroNodeMapping,
 ): LoroMap<{ [key: string]: string }> {
-  return obj.getOrCreateContainer(ATTRIBUTES_KEY, "Map");
+  return obj.getOrCreateContainer(ATTRIBUTES_KEY, new LoroMap());
 }
 
 export function updateLoroMapAttributes(
@@ -433,7 +433,7 @@ export function getLoroMapChildren(
   obj: LoroMap,
   mapping: LoroNodeMapping,
 ): LoroList<LoroType[]> {
-  return obj.getOrCreateContainer(CHILDREN_KEY, "List");
+  return obj.getOrCreateContainer(CHILDREN_KEY, new LoroList());
 }
 
 export function updateLoroMapChildren(
