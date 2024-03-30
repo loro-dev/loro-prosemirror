@@ -134,8 +134,9 @@ function update(view: EditorView, event: LoroEventBatch) {
     mapping.parents.delete(obj);
     while (parentObj != null) {
       mapping.nodes.delete(parentObj);
+      const prevParentObj = parentObj;
       parentObj = mapping.parents.get(parentObj);
-      mapping.parents.delete(parentObj);
+      mapping.parents.delete(prevParentObj);
     }
   }
 

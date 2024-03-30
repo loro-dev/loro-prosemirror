@@ -35,7 +35,6 @@ export function updateDoc(
     updateLoroMap(map, newEditorState.doc, mapping);
   }
   doc.commit("loroSyncPlugin");
-  console.log(doc.toJson());
 }
 
 export function createNodeFromLoroObj(
@@ -99,6 +98,7 @@ export function createNodeFromLoroObj(
       }
     }
   } else {
+    /* v8 ignore next */
     throw new Error("Invalid LoroType");
   }
 
@@ -169,7 +169,7 @@ function nodeMarksToAttributes(marks: readonly Mark[]): {
   return pattrs;
 }
 
-function eqLoroTextNodes(obj: LoroText, nodes: Node[]) {
+export function eqLoroTextNodes(obj: LoroText, nodes: Node[]) {
   const delta = obj.toDelta();
   return (
     delta.length === nodes.length &&
