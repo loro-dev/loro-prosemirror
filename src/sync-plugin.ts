@@ -8,7 +8,7 @@ import {
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Slice, Fragment } from "prosemirror-model";
-import { LoroNodeMapping, createNodeFromLoroObj, updateDoc } from "./utils";
+import { LoroNodeMapping, createNodeFromLoroObj, updateDoc } from "./lib";
 
 setDebug("*");
 
