@@ -1,4 +1,4 @@
-import { Loro, LoroEventBatch, LoroMap, LoroText, setDebug } from "loro-crdt";
+import { Loro, LoroEventBatch, LoroMap, LoroText } from "loro-crdt";
 import {
   Plugin,
   PluginKey,
@@ -9,8 +9,6 @@ import {
 import { EditorView } from "prosemirror-view";
 import { Slice, Fragment } from "prosemirror-model";
 import { LoroNodeMapping, createNodeFromLoroObj, updateDoc } from "./lib";
-
-setDebug("*");
 
 export const loroSyncPluginKey = new PluginKey("loro-sync");
 
@@ -47,10 +45,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
     state: {
       init: (config, editorState): LoroSyncPluginState => ({
         doc: props.doc,
-        mapping: props.mapping ?? {
-          nodes: new Map(),
-          parents: new Map(),
-        },
+        mapping: props.mapping ?? new Map(),
       }),
       apply: (tr, state, oldEditorState, newEditorState) => {
         const meta = tr.getMeta(
@@ -99,10 +94,7 @@ function init(view: EditorView) {
   docSubscription = state.doc.subscribe((event) => update(view, event));
 
   const innerDoc = state.doc.getMap("doc");
-  const mapping: LoroNodeMapping = {
-    nodes: new Map(),
-    parents: new Map(),
-  };
+  const mapping: LoroNodeMapping = new Map();
   const schema = view.state.schema;
   const node = createNodeFromLoroObj(schema, innerDoc, mapping);
   const tr = view.state.tr.replace(
@@ -127,16 +119,12 @@ function update(view: EditorView, event: LoroEventBatch) {
 
   for (const e of event.events) {
     const obj = state.doc.getContainerById(e.target);
+    mapping.delete(obj);
 
-    mapping.nodes.delete(obj);
-
-    let parentObj = mapping.parents.get(obj);
-    mapping.parents.delete(obj);
+    let parentObj = obj.parent();
     while (parentObj != null) {
-      mapping.nodes.delete(parentObj);
-      const prevParentObj = parentObj;
-      parentObj = mapping.parents.get(parentObj);
-      mapping.parents.delete(prevParentObj);
+      mapping.delete(parentObj);
+      parentObj = parentObj.parent();
     }
   }
 

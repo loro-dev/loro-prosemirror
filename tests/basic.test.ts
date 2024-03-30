@@ -4,7 +4,12 @@ import { Node, Schema, NodeSpec, MarkSpec } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
 import { Loro, LoroText } from "loro-crdt";
 
-import { LoroNodeMapping, createNodeFromLoroObj, updateDoc } from "../src";
+import {
+  LoroNodeMapping,
+  ROOT_DOC_KEY,
+  createNodeFromLoroObj,
+  updateDoc,
+} from "../src";
 
 import { schema } from "./schema";
 
@@ -185,10 +190,7 @@ describe("updateDoc", () => {
       schema,
     });
     const loroDoc = new Loro();
-    const mapping: LoroNodeMapping = {
-      nodes: new Map(),
-      parents: new Map(),
-    };
+    const mapping: LoroNodeMapping = new Map();
     updateDoc(loroDoc, mapping, editorState, editorState);
     expect(loroDoc.toJson()).toEqual(exampleLoroContent);
   });
@@ -204,13 +206,14 @@ describe("createNodeFromLoroObj", () => {
       schema,
     });
     const loroDoc = new Loro();
-    const mapping: LoroNodeMapping = {
-      nodes: new Map(),
-      parents: new Map(),
-    };
+    const mapping: LoroNodeMapping = new Map();
     updateDoc(loroDoc, mapping, _editorState, _editorState);
 
-    const node = createNodeFromLoroObj(schema, loroDoc.getMap("doc"), mapping);
+    const node = createNodeFromLoroObj(
+      schema,
+      loroDoc.getMap(ROOT_DOC_KEY),
+      mapping,
+    );
     const editorState = EditorState.create({
       doc,
       schema,
