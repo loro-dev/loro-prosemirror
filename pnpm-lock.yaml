@@ -1,0 +1,89 @@
+lockfileVersion: '6.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+dependencies:
+  lib0:
+    specifier: ^0.2.42
+    version: 0.2.93
+  loro-crdt:
+    specifier: ^0.11.1
+    version: 0.11.1
+
+devDependencies:
+  prosemirror-model:
+    specifier: ^1.18.1
+    version: 1.19.4
+  prosemirror-state:
+    specifier: ^1.4.1
+    version: 1.4.3
+  prosemirror-view:
+    specifier: ^1.26.2
+    version: 1.33.3
+  typescript:
+    specifier: ^5.4.3
+    version: 5.4.3
+
+packages:
+
+  /isomorphic.js@0.2.5:
+    resolution: {integrity: sha512-PIeMbHqMt4DnUP3MA/Flc0HElYjMXArsw1qwJZcm9sqR8mq3l8NYizFMty0pWwE/tzIGH3EKK5+jes5mAr85yw==}
+    dev: false
+
+  /lib0@0.2.93:
+    resolution: {integrity: sha512-M5IKsiFJYulS+8Eal8f+zAqf5ckm1vffW0fFDxfgxJ+uiVopvDdd3PxJmz0GsVi3YNO7QCFSq0nAsiDmNhLj9Q==}
+    engines: {node: '>=16'}
+    hasBin: true
+    dependencies:
+      isomorphic.js: 0.2.5
+    dev: false
+
+  /loro-crdt@0.11.1:
+    resolution: {integrity: sha512-C4+lryPZUDqUiLqX0mVp9wRb6+MPvhNngJNQhQxwIDqzn3oP/7Qra8XgY37M4d4Yvx2ZgG+1nYnR+43/xRwq7g==}
+    dependencies:
+      loro-wasm: 0.11.1
+    dev: false
+
+  /loro-wasm@0.11.1:
+    resolution: {integrity: sha512-/AkU2uXDRrKf6iu2WeaFIXjWzcwLgn3aWZFDW5yrIZGxc/0lB60b8F5cjyU+HqGzeXqGy0KnMrio+mTRDy1W0w==}
+    dev: false
+
+  /orderedmap@2.1.1:
+    resolution: {integrity: sha512-TvAWxi0nDe1j/rtMcWcIj94+Ffe6n7zhow33h40SKxmsmozs6dz/e+EajymfoFcHd7sxNn8yHM8839uixMOV6g==}
+    dev: true
+
+  /prosemirror-model@1.19.4:
+    resolution: {integrity: sha512-RPmVXxUfOhyFdayHawjuZCxiROsm9L4FCUA6pWI+l7n2yCBsWy9VpdE1hpDHUS8Vad661YLY9AzqfjLhAKQ4iQ==}
+    dependencies:
+      orderedmap: 2.1.1
+    dev: true
+
+  /prosemirror-state@1.4.3:
+    resolution: {integrity: sha512-goFKORVbvPuAQaXhpbemJFRKJ2aixr+AZMGiquiqKxaucC6hlpHNZHWgz5R7dS4roHiwq9vDctE//CZ++o0W1Q==}
+    dependencies:
+      prosemirror-model: 1.19.4
+      prosemirror-transform: 1.8.0
+      prosemirror-view: 1.33.3
+    dev: true
+
+  /prosemirror-transform@1.8.0:
+    resolution: {integrity: sha512-BaSBsIMv52F1BVVMvOmp1yzD3u65uC3HTzCBQV1WDPqJRQ2LuHKcyfn0jwqodo8sR9vVzMzZyI+Dal5W9E6a9A==}
+    dependencies:
+      prosemirror-model: 1.19.4
+    dev: true
+
+  /prosemirror-view@1.33.3:
+    resolution: {integrity: sha512-P4Ao/bc4OrU/2yLIf8dL4lJaEtjLR3QjIvQHgJYp2jUS7kYM4bSR6okbBjkqzOs/FwUon6UGjTLdKMnPL1MZqw==}
+    dependencies:
+      prosemirror-model: 1.19.4
+      prosemirror-state: 1.4.3
+      prosemirror-transform: 1.8.0
+    dev: true
+
+  /typescript@5.4.3:
+    resolution: {integrity: sha512-KrPd3PKaCLr78MalgiwJnA25Nm8HAmdwN3mYUYZgG/wizIo9EainNVQI9/yDavtVFRN2h3k8uf3GLHuhDMgEHg==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+    dev: true

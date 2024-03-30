@@ -1,0 +1,29 @@
+{
+  "name": "loro-prosemirror",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lib0": "^0.2.42",
+    "loro-crdt": "^0.11.1"
+  },
+  "peerDependencies": {
+    "prosemirror-model": "^1.7.1",
+    "prosemirror-state": "^1.2.3",
+    "prosemirror-view": "^1.9.10"
+  },
+  "devDependencies": {
+    "lib0": "^0.2.93",
+    "prosemirror-model": "^1.18.1",
+    "prosemirror-state": "^1.4.1",
+    "prosemirror-view": "^1.26.2",
+    "typescript": "^5.4.3"
+  }
+}
