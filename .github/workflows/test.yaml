@@ -42,4 +42,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Test
-        run: pnpm test
+        run: pnpm coverage
+      - name: 'Report Coverage'
+        if: always()
+        uses: davelosert/vitest-coverage-report-action@v2
