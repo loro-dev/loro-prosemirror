@@ -428,8 +428,6 @@ describe("createNodeFromLoroObj", () => {
 
     loroDoc.commit();
     await oneMs();
-    // FIXME: Why the subscription is not triggering?
-    mapping.clear();
 
     node = createNodeFromLoroObj(schema, loroInnerDoc, mapping);
     expect(node.toJSON()).toEqual({
@@ -447,8 +445,6 @@ describe("createNodeFromLoroObj", () => {
 
     loroDoc.commit();
     await oneMs();
-    // FIXME: Why the subscription is not triggering?
-    mapping.clear();
 
     node = createNodeFromLoroObj(schema, loroInnerDoc, mapping);
     expect(node.toJSON()).toEqual({
@@ -472,8 +468,6 @@ describe("createNodeFromLoroObj", () => {
 
     loroDoc.commit();
     await oneMs();
-    // FIXME: Why the subscription is not triggering?
-    mapping.clear();
 
     node = createNodeFromLoroObj(schema, loroInnerDoc, mapping);
     expect(node.toJSON()).toEqual({
@@ -517,8 +511,6 @@ describe("createNodeFromLoroObj", () => {
 
     loroDoc.commit();
     await oneMs();
-    // FIXME: Why the subscription is not triggering?
-    mapping.clear();
 
     node = createNodeFromLoroObj(schema, loroInnerDoc, mapping);
     expect(node.toJSON()).toEqual({
