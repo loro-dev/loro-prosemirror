@@ -12,6 +12,7 @@ import {
 } from "../src";
 
 import { schema } from "./schema";
+import { createEditorState } from "./utils";
 
 const examplePmContent = {
   doc: {
@@ -184,27 +185,204 @@ const exampleLoroContent = {
 
 describe("updateDoc", () => {
   test("empty doc gets populated correctly", () => {
-    const doc = schema.nodeFromJSON(examplePmContent.doc);
-    const editorState = EditorState.create({
-      doc,
-      schema,
-    });
+    const editorState = createEditorState(schema, examplePmContent.doc);
     const loroDoc = new Loro();
     const mapping: LoroNodeMapping = new Map();
     updateDoc(loroDoc, mapping, editorState, editorState);
     expect(loroDoc.toJson()).toEqual(exampleLoroContent);
   });
+
+  test("doc syncs changes correctly", () => {
+    const loroDoc = new Loro();
+    const mapping: LoroNodeMapping = new Map();
+
+    // First we create an empty content
+    const pmContent: any = {};
+    pmContent["type"] = ROOT_DOC_KEY;
+    pmContent["content"] = [];
+    let editorState = createEditorState(schema, pmContent);
+
+    updateDoc(loroDoc, mapping, editorState, editorState);
+    expect(loroDoc.toJson()).toEqual({
+      [ROOT_DOC_KEY]: {
+        nodeName: ROOT_DOC_KEY,
+        attributes: {},
+        children: [],
+      },
+    });
+
+    // Now lets add a paragraph
+    pmContent.content.push({
+      type: "paragraph",
+      content: [{ type: "text", text: "Hello world" }],
+    });
+    editorState = createEditorState(schema, pmContent);
+
+    updateDoc(loroDoc, mapping, editorState, editorState);
+    expect(loroDoc.toJson()).toEqual({
+      [ROOT_DOC_KEY]: {
+        nodeName: ROOT_DOC_KEY,
+        attributes: {},
+        children: [
+          {
+            nodeName: "paragraph",
+            attributes: {},
+            children: ["Hello world"],
+          },
+        ],
+      },
+    });
+
+    // A second paragraph
+    pmContent.content.push({
+      type: "paragraph",
+      content: [{ type: "text", text: "Hello world 2" }],
+    });
+    editorState = createEditorState(schema, pmContent);
+
+    updateDoc(loroDoc, mapping, editorState, editorState);
+    expect(loroDoc.toJson()).toEqual({
+      [ROOT_DOC_KEY]: {
+        nodeName: ROOT_DOC_KEY,
+        attributes: {},
+        children: [
+          {
+            nodeName: "paragraph",
+            attributes: {},
+            children: ["Hello world"],
+          },
+          {
+            nodeName: "paragraph",
+            attributes: {},
+            children: ["Hello world 2"],
+          },
+        ],
+      },
+    });
+
+    // A bullet list before the first paragraph
+    pmContent.content.unshift({
+      type: "bulletList",
+      content: [
+        {
+          type: "listItem",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Bullet 1" }],
+            },
+          ],
+        },
+      ],
+    });
+    editorState = createEditorState(schema, pmContent);
+
+    updateDoc(loroDoc, mapping, editorState, editorState);
+    expect(loroDoc.toJson()).toEqual({
+      [ROOT_DOC_KEY]: {
+        nodeName: ROOT_DOC_KEY,
+        attributes: {},
+        children: [
+          {
+            nodeName: "bulletList",
+            attributes: {},
+            children: [
+              {
+                nodeName: "listItem",
+                attributes: {},
+                children: [
+                  {
+                    nodeName: "paragraph",
+                    attributes: {},
+                    children: ["Bullet 1"],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            nodeName: "paragraph",
+            attributes: {},
+            children: ["Hello world"],
+          },
+          {
+            nodeName: "paragraph",
+            attributes: {},
+            children: ["Hello world 2"],
+          },
+        ],
+      },
+    });
+
+    // Now lets delete the first paragraph, add another item to the bullet list
+    // and also add some bold text to the second paragraph
+    pmContent.content.splice(1, 1);
+    pmContent.content[0].content.push({
+      type: "listItem",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "Bullet 2" }],
+        },
+      ],
+    });
+    pmContent.content[1].content.push({
+      type: "text",
+      marks: [{ type: "bold" }],
+      text: " with bold text",
+    });
+    editorState = createEditorState(schema, pmContent);
+
+    updateDoc(loroDoc, mapping, editorState, editorState);
+    expect(loroDoc.toJson()).toEqual({
+      [ROOT_DOC_KEY]: {
+        nodeName: ROOT_DOC_KEY,
+        attributes: {},
+        children: [
+          {
+            nodeName: "bulletList",
+            attributes: {},
+            children: [
+              {
+                nodeName: "listItem",
+                attributes: {},
+                children: [
+                  {
+                    nodeName: "paragraph",
+                    attributes: {},
+                    children: ["Bullet 1"],
+                  },
+                ],
+              },
+              {
+                nodeName: "listItem",
+                attributes: {},
+                children: [
+                  {
+                    nodeName: "paragraph",
+                    attributes: {},
+                    children: ["Bullet 2"],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            nodeName: "paragraph",
+            attributes: {},
+            children: ["Hello world 2 with bold text"],
+          },
+        ],
+      },
+    });
+  });
 });
 
 describe("createNodeFromLoroObj", () => {
-  test("empty doc gets populated correctly", () => {
+  test("node gets created from doc correctly", () => {
     // FIXME: Reusing the logic here to populate the loro doc as its
     // json representation doesn't contain text marks
-    const doc = schema.nodeFromJSON(examplePmContent.doc);
-    const _editorState = EditorState.create({
-      doc,
-      schema,
-    });
+    const _editorState = createEditorState(schema, examplePmContent.doc);
     const loroDoc = new Loro();
     const mapping: LoroNodeMapping = new Map();
     updateDoc(loroDoc, mapping, _editorState, _editorState);
@@ -214,10 +392,7 @@ describe("createNodeFromLoroObj", () => {
       loroDoc.getMap(ROOT_DOC_KEY),
       mapping,
     );
-    const editorState = EditorState.create({
-      doc,
-      schema,
-    });
+    const editorState = createEditorState(schema, examplePmContent.doc);
     expect(editorState.toJSON()).toEqual(examplePmContent);
   });
 });
