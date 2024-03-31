@@ -2,7 +2,7 @@ import { Schema, NodeSpec, MarkSpec } from "prosemirror-model";
 
 const nodes: { [key: string]: NodeSpec } = {
   doc: {
-    content: "block+",
+    content: "block*",
   },
   noteTitle: {
     attrs: { emoji: { default: "" } },
