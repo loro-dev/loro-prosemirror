@@ -9,8 +9,8 @@ dependencies:
     specifier: ^0.2.42
     version: 0.2.93
   loro-crdt:
-    specifier: ~0.11.1
-    version: 0.11.1
+    specifier: ^0.13.1
+    version: 0.13.1
 
 devDependencies:
   '@typescript-eslint/parser':
@@ -1331,14 +1331,14 @@ packages:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
     dev: true
 
-  /loro-crdt@0.11.1:
-    resolution: {integrity: sha512-C4+lryPZUDqUiLqX0mVp9wRb6+MPvhNngJNQhQxwIDqzn3oP/7Qra8XgY37M4d4Yvx2ZgG+1nYnR+43/xRwq7g==}
+  /loro-crdt@0.13.1:
+    resolution: {integrity: sha512-jYHywGTohcM8f25eA+cF2Bai2yMkpxlebHRlVAMTvVIlVKwtRjh25UH0qZdbbc1YXra67lanJ/VeoP16o63ooQ==}
     dependencies:
-      loro-wasm: 0.11.1
+      loro-wasm: 0.13.1
     dev: false
 
-  /loro-wasm@0.11.1:
-    resolution: {integrity: sha512-/AkU2uXDRrKf6iu2WeaFIXjWzcwLgn3aWZFDW5yrIZGxc/0lB60b8F5cjyU+HqGzeXqGy0KnMrio+mTRDy1W0w==}
+  /loro-wasm@0.13.1:
+    resolution: {integrity: sha512-IreiBc4H4ge2tjJryzTN8yr3GIG8nPGQWREQSycghW5+WnX6jAAH3FiRap1s0aEPtKpIpPhFV8T3W0cHKwIvjg==}
     dev: false
 
   /loupe@2.3.7:

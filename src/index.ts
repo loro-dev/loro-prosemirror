@@ -1,2 +1,2 @@
-export * from "./sync-plugin.ts";
-export * from "./lib.ts";
+export * from "./sync-plugin";
+export * from "./lib";
