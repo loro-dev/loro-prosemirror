@@ -8,7 +8,12 @@ import {
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Slice, Fragment } from "prosemirror-model";
-import { LoroNodeMapping, createNodeFromLoroObj, updateDoc } from "./lib";
+import {
+  LoroNodeMapping,
+  clearChangedNodes,
+  createNodeFromLoroObj,
+  updateDoc,
+} from "./lib";
 
 export const loroSyncPluginKey = new PluginKey("loro-sync");
 
@@ -117,17 +122,7 @@ function update(view: EditorView, event: LoroEventBatch) {
   const state = loroSyncPluginKey.getState(view.state) as LoroSyncPluginState;
   const mapping = state.mapping;
 
-  for (const e of event.events) {
-    const obj = state.doc.getContainerById(e.target);
-    mapping.delete(obj);
-
-    let parentObj = obj.parent();
-    while (parentObj != null) {
-      mapping.delete(parentObj);
-      parentObj = parentObj.parent();
-    }
-  }
-
+  clearChangedNodes(state.doc, event, mapping);
   const node = createNodeFromLoroObj(
     view.state.schema,
     state.doc.getMap("doc"),

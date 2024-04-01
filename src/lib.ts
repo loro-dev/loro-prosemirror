@@ -1,12 +1,16 @@
 import { simpleDiff } from "lib0/diff";
+
 import {
+  ContainerID,
   Delta,
   Loro,
+  LoroEventBatch,
   LoroList,
   LoroMap,
   LoroText,
   LoroTree,
   Value,
+  isContainer,
 } from "loro-crdt";
 import { EditorState } from "prosemirror-state";
 import { Attrs, Mark, Node, Schema } from "prosemirror-model";
@@ -17,7 +21,7 @@ export type LoroContainer =
   | LoroText
   | LoroTree;
 export type LoroType = LoroContainer | Value;
-export type LoroNodeMapping = Map<LoroType, Node | Node[]>;
+export type LoroNodeMapping = Map<ContainerID, Node | Node[]>;
 
 export const ROOT_DOC_KEY = "doc";
 export const ATTRIBUTES_KEY = "attributes";
@@ -55,14 +59,14 @@ export function createNodeFromLoroObj(
   obj: LoroMap | LoroText,
   mapping: LoroNodeMapping,
 ): Node | Node[] | null {
-  let retval: Node | Node[] | null = mapping.get(obj) ?? null;
+  let retval: Node | Node[] | null = mapping.get(obj.id) ?? null;
   if (retval != null) {
     return retval;
   }
 
   if (obj instanceof LoroMap) {
-    const attributes = getLoroMapAttributes(obj, mapping);
-    const children = getLoroMapChildren(obj, mapping);
+    const attributes = getLoroMapAttributes(obj);
+    const children = getLoroMapChildren(obj);
 
     const nodeName = obj.get("nodeName");
     if (nodeName == null || typeof nodeName !== "string") {
@@ -106,9 +110,9 @@ export function createNodeFromLoroObj(
   }
 
   if (retval != null) {
-    mapping.set(obj, retval);
+    mapping.set(obj.id, retval);
   } else {
-    mapping.delete(obj);
+    mapping.delete(obj.id);
   }
 
   return retval;
@@ -141,7 +145,7 @@ export function createLoroText(
   }));
   obj.applyDelta(delta);
 
-  mapping.set(obj, nodes);
+  mapping.set(obj.id, nodes);
   return obj;
 }
 
@@ -150,7 +154,7 @@ export function updateLoroText(
   nodes: Node[],
   mapping: LoroNodeMapping,
 ) {
-  mapping.set(obj, nodes);
+  mapping.set(obj.id, nodes);
 
   let str = obj.toString();
   const attrs: { [key: string]: Attrs | null } = {};
@@ -215,11 +219,11 @@ function eqLoroObjNode(
       return false;
     }
 
-    const loroChildren = getLoroMapChildren(obj, mapping);
+    const loroChildren = getLoroMapChildren(obj);
     const normalizedContent = normalizeNodeContent(node);
     return (
       loroChildren.length === normalizedContent.length &&
-      eqAttrs(getLoroMapAttributes(obj, mapping).toJson(), node.attrs) &&
+      eqAttrs(getLoroMapAttributes(obj).toJson(), node.attrs) &&
       normalizedContent.every((childNode, i) =>
         eqLoroObjNode(loroChildren.get(i)!, childNode, mapping),
       )
@@ -296,7 +300,7 @@ function computeChildEqualityFactor(
   factor: number;
   foundMappedChild: boolean;
 } {
-  const loroChildren = getLoroMapChildren(obj, mapping);
+  const loroChildren = getLoroMapChildren(obj);
   const loroChildLength = loroChildren.length;
 
   const nodeChildren = normalizeNodeContent(node);
@@ -312,7 +316,9 @@ function computeChildEqualityFactor(
     const leftNode = nodeChildren[left];
     if (
       eqMappedNode(
-        leftLoro != null ? mapping.get(leftLoro) : undefined,
+        leftLoro != null && isContainer(leftLoro)
+          ? mapping.get(leftLoro.id)
+          : undefined,
         leftNode,
       )
     ) {
@@ -330,7 +336,9 @@ function computeChildEqualityFactor(
     const rightNode = nodeChildren[nodeChildLength - right - 1];
     if (
       eqMappedNode(
-        rightLoro != null ? mapping.get(rightLoro) : undefined,
+        rightLoro != null && isContainer(rightLoro)
+          ? mapping.get(rightLoro.id)
+          : undefined,
         rightNode,
       )
     ) {
@@ -361,19 +369,19 @@ export function createLoroMap(
 
   obj.set("nodeName", node.type.name);
 
-  const attrs = getLoroMapAttributes(obj, mapping);
+  const attrs = getLoroMapAttributes(obj);
   for (const [key, value] of Object.entries(node.attrs)) {
     if (value !== null) {
       attrs.set(key, value);
     }
   }
 
-  const children = getLoroMapChildren(obj, mapping);
+  const children = getLoroMapChildren(obj);
   normalizeNodeContent(node).forEach((child, i) =>
     createLoroChild(children, null, child, mapping),
   );
 
-  mapping.set(obj, node);
+  mapping.set(obj.id, node);
   return obj;
 }
 
@@ -382,7 +390,7 @@ export function updateLoroMap(
   node: Node,
   mapping: LoroNodeMapping,
 ) {
-  mapping.set(obj, node);
+  mapping.set(obj.id, node);
 
   if (!eqNodeName(obj, node)) {
     throw new Error("node name mismatch!");
@@ -394,7 +402,6 @@ export function updateLoroMap(
 
 export function getLoroMapAttributes(
   obj: LoroMap,
-  mapping: LoroNodeMapping,
 ): LoroMap<{ [key: string]: string }> {
   return obj.getOrCreateContainer(ATTRIBUTES_KEY, new LoroMap());
 }
@@ -404,7 +411,7 @@ export function updateLoroMapAttributes(
   node: Node,
   mapping: LoroNodeMapping,
 ): void {
-  const attrs = getLoroMapAttributes(obj, mapping);
+  const attrs = getLoroMapAttributes(obj);
   const keys = new Set(attrs.keys());
 
   const pAttrs = node.attrs;
@@ -429,10 +436,7 @@ export function updateLoroMapAttributes(
   }
 }
 
-export function getLoroMapChildren(
-  obj: LoroMap,
-  mapping: LoroNodeMapping,
-): LoroList<LoroType[]> {
+export function getLoroMapChildren(obj: LoroMap): LoroList<LoroType[]> {
   return obj.getOrCreateContainer(CHILDREN_KEY, new LoroList());
 }
 
@@ -441,7 +445,7 @@ export function updateLoroMapChildren(
   node: Node,
   mapping: LoroNodeMapping,
 ): void {
-  const loroChildren = getLoroMapChildren(obj, mapping);
+  const loroChildren = getLoroMapChildren(obj);
   const loroChildLength = loroChildren.length;
 
   const nodeChildren = normalizeNodeContent(node);
@@ -458,15 +462,17 @@ export function updateLoroMapChildren(
     if (
       leftLoro == null ||
       leftNode == null ||
-      !eqMappedNode(mapping.get(leftLoro), leftNode)
+      (isContainer(leftLoro) &&
+        !eqMappedNode(mapping.get(leftLoro.id), leftNode))
     ) {
       if (
         leftLoro != null &&
         leftNode != null &&
+        isContainer(leftLoro) &&
         eqLoroObjNode(leftLoro, leftNode, mapping)
       ) {
         // update mapping
-        mapping.set(leftLoro, leftNode);
+        mapping.set(leftLoro.id, leftNode);
       } else {
         break;
       }
@@ -480,15 +486,17 @@ export function updateLoroMapChildren(
     if (
       rightLoro == null ||
       rightNode == null ||
-      !eqMappedNode(mapping.get(rightLoro), rightNode)
+      (isContainer(rightLoro) &&
+        !eqMappedNode(mapping.get(rightLoro.id), rightNode))
     ) {
       if (
         rightLoro != null &&
         rightNode != null &&
+        isContainer(rightLoro) &&
         eqLoroObjNode(rightLoro, rightNode, mapping)
       ) {
         // update mapping
-        mapping.set(rightLoro, rightNode);
+        mapping.set(rightLoro.id, rightNode);
       } else {
         break;
       }
@@ -550,7 +558,10 @@ export function updateLoroMapChildren(
         updateLoroMap(rightLoro as LoroMap, rightNode as Node, mapping);
         right += 1;
       } else {
-        mapping.delete(loroChildren.get(left)!);
+        const child = loroChildren.get(left);
+        if (isContainer(child)) {
+          mapping.delete(child.id);
+        }
         loroChildren.delete(left, 1);
         createLoroChild(loroChildren, left, leftNode, mapping);
         left += 1;
@@ -566,13 +577,14 @@ export function updateLoroMapChildren(
   ) {
     // Only delete the content of the LoroText to retain remote changes on the same LoroText object
     const loroText = loroChildren.get(0) as LoroText;
-    mapping.delete(loroText);
+    mapping.delete(loroText.id);
     loroText.delete(0, loroText.length);
   } else if (loroDelLength > 0) {
     loroChildren
       .toArray()
       .slice(left, left + loroDelLength)
-      .forEach((type) => mapping.delete(type));
+      .filter(isContainer)
+      .forEach((type) => mapping.delete(type.id));
     loroChildren.delete(left, loroDelLength);
   }
 
@@ -582,5 +594,22 @@ export function updateLoroMapChildren(
       .forEach((nodeChild, i) =>
         createLoroChild(loroChildren, left + i, nodeChild, mapping),
       );
+  }
+}
+
+export function clearChangedNodes(
+  doc: Loro,
+  event: LoroEventBatch,
+  mapping: LoroNodeMapping,
+) {
+  for (const e of event.events) {
+    const obj = doc.getContainerById(e.target);
+    mapping.delete(obj.id);
+
+    let parentObj = obj.parent();
+    while (parentObj != null) {
+      mapping.delete(parentObj.id);
+      parentObj = parentObj.parent();
+    }
   }
 }
