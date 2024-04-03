@@ -12,7 +12,7 @@ import {
   LoroNodeMapping,
   clearChangedNodes,
   createNodeFromLoroObj,
-  updateLoroOnPmChange as updateLoroOnPmChange,
+  updateLoroOnPmChange,
 } from "./lib";
 
 export const loroSyncPluginKey = new PluginKey<LoroSyncPluginState>("loro-sync");
