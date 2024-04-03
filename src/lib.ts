@@ -1,4 +1,5 @@
 import { simpleDiff } from "lib0/diff";
+import deepEq from "fast-deep-equal";
 
 import {
   ContainerID,
@@ -21,13 +22,31 @@ export type LoroContainer =
   | LoroText
   | LoroTree;
 export type LoroType = LoroContainer | Value;
+
+// Mapping from a Loro Container ID to a ProseMirror non-text node 
+// or to the children of a ProseMirror text node.
+//
+// - For an non-text, it will be a LoroMap mapping to a Node
+// - For a text, it will be a LoroText mapping to Node. (PM stores 
+//   rich text as arrays of text nodes, each one with its marks, 
+//   and that's why we have some conversion utilities between both)
+//
+// So that ContainerID should always be of a LoroMap or a LoroText.
+// Anything else is considered an error.
+//
+// A PM non-text node, it has attributes and children, which represents as a 
+// LoroMap with a `"attributes": LoroMap` and a `"children": LoroList` inside 
+// of it. Both that attributes and children are just part of the parent LoroMap 
+// structure, which is mapped to an actual node.
+//
+// See also: https://prosemirror.net/docs/guide/#doc.data_structures
 export type LoroNodeMapping = Map<ContainerID, Node | Node[]>;
 
 export const ROOT_DOC_KEY = "doc";
 export const ATTRIBUTES_KEY = "attributes";
 export const CHILDREN_KEY = "children";
 
-export function updateDoc(
+export function updateLoroOnPmChange(
   doc: Loro,
   mapping: LoroNodeMapping,
   oldEditorState: EditorState,
@@ -81,7 +100,7 @@ export function createNodeFromLoroObj(
     try {
       retval = schema.node(nodeName, attributes.toJson(), mappedChildren);
     } catch (e) {
-      // An error occured while creating the node.
+      // An error occurred while creating the node.
       // This is probably a result of a concurrent action.
       console.error(e);
     }
@@ -99,7 +118,7 @@ export function createNodeFromLoroObj(
         }
         retval.push(schema.text(delta.insert, marks));
       } catch (e) {
-        // An error occured while creating the node.
+        // An error occurred while creating the node.
         // This is probably a result of a concurrent action.
         console.error(e);
       }
@@ -209,10 +228,14 @@ function eqLoroTextNodes(obj: LoroText, nodes: Node[]) {
   );
 }
 
+
+// TODO: extract code about equality into a single file
+/**
+ * Whether the loro object is equal to the node.
+ */
 function eqLoroObjNode(
   obj: LoroType,
   node: Node | Node[],
-  mapping: LoroNodeMapping,
 ): boolean {
   if (obj instanceof LoroMap) {
     if (Array.isArray(node) || !eqNodeName(obj, node)) {
@@ -225,7 +248,7 @@ function eqLoroObjNode(
       loroChildren.length === normalizedContent.length &&
       eqAttrs(getLoroMapAttributes(obj).toJson(), node.attrs) &&
       normalizedContent.every((childNode, i) =>
-        eqLoroObjNode(loroChildren.get(i)!, childNode, mapping),
+        eqLoroObjNode(loroChildren.get(i)!, childNode),
       )
     );
   }
@@ -326,7 +349,7 @@ function computeChildEqualityFactor(
     } else if (
       leftLoro == null ||
       leftNode == null ||
-      !eqLoroObjNode(leftLoro, leftNode, mapping)
+      !eqLoroObjNode(leftLoro, leftNode)
     ) {
       break;
     }
@@ -346,7 +369,7 @@ function computeChildEqualityFactor(
     } else if (
       rightLoro == null ||
       rightNode == null ||
-      !eqLoroObjNode(rightLoro, rightNode, mapping)
+      !eqLoroObjNode(rightLoro, rightNode)
     ) {
       break;
     }
@@ -417,15 +440,11 @@ export function updateLoroMapAttributes(
   const pAttrs = node.attrs;
   for (const [key, value] of Object.entries(node.attrs)) {
     if (value !== null) {
-      // TODO: Will calling `set` without `get` generate diffs if the content is the same?
-      if (attrs.get(key) !== value) {
+      if (!deepEq(attrs.get(key), value)) {
         attrs.set(key, value);
       }
     } else {
-      // TODO: Can we just call delete without checking this here?
-      if (keys.has(key)) {
-        attrs.delete(key);
-      }
+      attrs.delete(key);
     }
     keys.delete(key);
   }
@@ -469,8 +488,9 @@ export function updateLoroMapChildren(
         leftLoro != null &&
         leftNode != null &&
         isContainer(leftLoro) &&
-        eqLoroObjNode(leftLoro, leftNode, mapping)
+        eqLoroObjNode(leftLoro, leftNode)
       ) {
+        // If they actually equal but have different pointers, update the mapping
         // update mapping
         mapping.set(leftLoro.id, leftNode);
       } else {
@@ -493,8 +513,9 @@ export function updateLoroMapChildren(
         rightLoro != null &&
         rightNode != null &&
         isContainer(rightLoro) &&
-        eqLoroObjNode(rightLoro, rightNode, mapping)
+        eqLoroObjNode(rightLoro, rightNode)
       ) {
+        // If they actually equal but have different pointers, update the mapping
         // update mapping
         mapping.set(rightLoro.id, rightNode);
       } else {
@@ -558,6 +579,7 @@ export function updateLoroMapChildren(
         updateLoroMap(rightLoro as LoroMap, rightNode as Node, mapping);
         right += 1;
       } else {
+        // recreate the element at left
         const child = loroChildren.get(left);
         if (isContainer(child)) {
           mapping.delete(child.id);
@@ -576,6 +598,7 @@ export function updateLoroMapChildren(
     loroChildren.get(0) instanceof LoroText
   ) {
     // Only delete the content of the LoroText to retain remote changes on the same LoroText object
+    // Otherwise, the LoroText object will be deleted and all the concurrent edits to the same LoroText object will be lost
     const loroText = loroChildren.get(0) as LoroText;
     mapping.delete(loroText.id);
     loroText.delete(0, loroText.length);

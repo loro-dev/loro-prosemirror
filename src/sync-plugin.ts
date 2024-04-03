@@ -12,19 +12,19 @@ import {
   LoroNodeMapping,
   clearChangedNodes,
   createNodeFromLoroObj,
-  updateDoc,
+  updateLoroOnPmChange,
 } from "./lib";
 
-export const loroSyncPluginKey = new PluginKey("loro-sync");
+export const loroSyncPluginKey = new PluginKey<LoroSyncPluginState>("loro-sync");
 
 type PluginTransactionType =
   | {
-      type: "doc-changed";
-    }
+    type: "doc-changed";
+  }
   | {
-      type: "update-state";
-      state: Partial<LoroSyncPluginState>;
-    };
+    type: "update-state";
+    state: Partial<LoroSyncPluginState>;
+  };
 
 export interface LoroSyncPluginProps {
   doc: Loro;
@@ -44,7 +44,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
     props: {
       editable: (state) => {
         const syncState = loroSyncPluginKey.getState(state);
-        return syncState.snapshot == null;
+        return syncState?.snapshot == null;
       },
     },
     state: {
@@ -58,7 +58,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
         ) as PluginTransactionType | null;
         switch (meta?.type) {
           case "doc-changed":
-            updateDoc(state.doc, state.mapping, oldEditorState, newEditorState);
+            updateLoroOnPmChange(state.doc, state.mapping, oldEditorState, newEditorState);
             break;
           case "update-state":
             state = { ...state, ...meta.state };
@@ -80,7 +80,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
     view: (view: EditorView) => {
       const timeoutId = setTimeout(() => init(view), 0);
       return {
-        update: (view: EditorView, prevState: EditorState) => {},
+        update: (view: EditorView, prevState: EditorState) => { },
         destroy: () => {
           clearTimeout(timeoutId);
         },
@@ -89,6 +89,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
   });
 };
 
+// This is called when the plugin's state is associated with an editor view
 function init(view: EditorView) {
   const state = loroSyncPluginKey.getState(view.state) as LoroSyncPluginState;
 
@@ -96,7 +97,7 @@ function init(view: EditorView) {
   if (docSubscription != null) {
     state.doc.unsubscribe(docSubscription);
   }
-  docSubscription = state.doc.subscribe((event) => update(view, event));
+  docSubscription = state.doc.subscribe((event) => updateNodeOnLoroEvent(view, event));
 
   const innerDoc = state.doc.getMap("doc");
   const mapping: LoroNodeMapping = new Map();
@@ -114,7 +115,7 @@ function init(view: EditorView) {
   view.dispatch(tr);
 }
 
-function update(view: EditorView, event: LoroEventBatch) {
+function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
   if (event.local) {
     return;
   }
