@@ -1,4 +1,5 @@
 import { simpleDiff } from "lib0/diff";
+import deepEq from "fast-deep-equal";
 
 import {
   ContainerID,
@@ -21,6 +22,24 @@ export type LoroContainer =
   | LoroText
   | LoroTree;
 export type LoroType = LoroContainer | Value;
+
+// Mapping from a Loro Container ID to a ProseMirror non-text node 
+// or to the children of a ProseMirror text node.
+//
+// - For an non-text, it will be a LoroMap mapping to a Node
+// - For a text, it will be a LoroText mapping to Node. (PM stores 
+//   rich text as arrays of text nodes, each one with its marks, 
+//   and that's why we have some conversion utilities between both)
+//
+// So that ContainerID should always be of a LoroMap or a LoroText.
+// Anything else is considered an error.
+//
+// A PM non-text node, it has attributes and children, which represents as a 
+// LoroMap with a `"attributes": LoroMap` and a `"children": LoroList` inside 
+// of it. Both that attributes and children are just part of the parent LoroMap 
+// structure, which is mapped to an actual node.
+//
+// See also: https://prosemirror.net/docs/guide/#doc.data_structures
 export type LoroNodeMapping = Map<ContainerID, Node | Node[]>;
 
 export const ROOT_DOC_KEY = "doc";
@@ -81,7 +100,7 @@ export function createNodeFromLoroObj(
     try {
       retval = schema.node(nodeName, attributes.toJson(), mappedChildren);
     } catch (e) {
-      // An error occured while creating the node.
+      // An error occurred while creating the node.
       // This is probably a result of a concurrent action.
       console.error(e);
     }
@@ -99,7 +118,7 @@ export function createNodeFromLoroObj(
         }
         retval.push(schema.text(delta.insert, marks));
       } catch (e) {
-        // An error occured while creating the node.
+        // An error occurred while creating the node.
         // This is probably a result of a concurrent action.
         console.error(e);
       }
@@ -421,11 +440,7 @@ export function updateLoroMapAttributes(
   const pAttrs = node.attrs;
   for (const [key, value] of Object.entries(node.attrs)) {
     if (value !== null) {
-      // TODO: Will calling `set` without `get` generate diffs if the content is the same?
-      //
-      // FIXME: Should we use a deep equal here? If the value is an obj, it's always going to be a new object.
-      //       Or maybe we should getting the old value from mapping?
-      if (attrs.get(key) !== value) {
+      if (!deepEq(attrs.get(key), value)) {
         attrs.set(key, value);
       }
     } else {
@@ -438,8 +453,6 @@ export function updateLoroMapAttributes(
   for (const key of keys) {
     attrs.delete(key);
   }
-
-  // FIXME: should we update the mapping of attr here?
 }
 
 export function getLoroMapChildren(obj: LoroMap): LoroList<LoroType[]> {
@@ -585,8 +598,8 @@ export function updateLoroMapChildren(
     loroChildren.get(0) instanceof LoroText
   ) {
     // Only delete the content of the LoroText to retain remote changes on the same LoroText object
+    // Otherwise, the LoroText object will be deleted and all the concurrent edits to the same LoroText object will be lost
     const loroText = loroChildren.get(0) as LoroText;
-    // NOTE: why do we need to delete it in the mapping?
     mapping.delete(loroText.id);
     loroText.delete(0, loroText.length);
   } else if (loroDelLength > 0) {
@@ -605,8 +618,6 @@ export function updateLoroMapChildren(
         createLoroChild(loroChildren, left + i, nodeChild, mapping),
       );
   }
-
-  // FIXME: should we update the mapping of children here?
 }
 
 export function clearChangedNodes(
