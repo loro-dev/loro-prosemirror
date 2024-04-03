@@ -27,7 +27,7 @@ export const ROOT_DOC_KEY = "doc";
 export const ATTRIBUTES_KEY = "attributes";
 export const CHILDREN_KEY = "children";
 
-export function updateDoc(
+export function updateLoroOnPmChange(
   doc: Loro,
   mapping: LoroNodeMapping,
   oldEditorState: EditorState,
@@ -209,10 +209,14 @@ function eqLoroTextNodes(obj: LoroText, nodes: Node[]) {
   );
 }
 
+
+// TODO: extract code about equality into a single file
+/**
+ * Whether the loro object is equal to the node.
+ */
 function eqLoroObjNode(
   obj: LoroType,
   node: Node | Node[],
-  mapping: LoroNodeMapping,
 ): boolean {
   if (obj instanceof LoroMap) {
     if (Array.isArray(node) || !eqNodeName(obj, node)) {
@@ -225,7 +229,7 @@ function eqLoroObjNode(
       loroChildren.length === normalizedContent.length &&
       eqAttrs(getLoroMapAttributes(obj).toJson(), node.attrs) &&
       normalizedContent.every((childNode, i) =>
-        eqLoroObjNode(loroChildren.get(i)!, childNode, mapping),
+        eqLoroObjNode(loroChildren.get(i)!, childNode),
       )
     );
   }
@@ -326,7 +330,7 @@ function computeChildEqualityFactor(
     } else if (
       leftLoro == null ||
       leftNode == null ||
-      !eqLoroObjNode(leftLoro, leftNode, mapping)
+      !eqLoroObjNode(leftLoro, leftNode)
     ) {
       break;
     }
@@ -346,7 +350,7 @@ function computeChildEqualityFactor(
     } else if (
       rightLoro == null ||
       rightNode == null ||
-      !eqLoroObjNode(rightLoro, rightNode, mapping)
+      !eqLoroObjNode(rightLoro, rightNode)
     ) {
       break;
     }
@@ -418,14 +422,14 @@ export function updateLoroMapAttributes(
   for (const [key, value] of Object.entries(node.attrs)) {
     if (value !== null) {
       // TODO: Will calling `set` without `get` generate diffs if the content is the same?
+      //
+      // FIXME: Should we use a deep equal here? If the value is an obj, it's always going to be a new object.
+      //       Or maybe we should getting the old value from mapping?
       if (attrs.get(key) !== value) {
         attrs.set(key, value);
       }
     } else {
-      // TODO: Can we just call delete without checking this here?
-      if (keys.has(key)) {
-        attrs.delete(key);
-      }
+      attrs.delete(key);
     }
     keys.delete(key);
   }
@@ -434,6 +438,8 @@ export function updateLoroMapAttributes(
   for (const key of keys) {
     attrs.delete(key);
   }
+
+  // FIXME: should we update the mapping of attr here?
 }
 
 export function getLoroMapChildren(obj: LoroMap): LoroList<LoroType[]> {
@@ -469,8 +475,9 @@ export function updateLoroMapChildren(
         leftLoro != null &&
         leftNode != null &&
         isContainer(leftLoro) &&
-        eqLoroObjNode(leftLoro, leftNode, mapping)
+        eqLoroObjNode(leftLoro, leftNode)
       ) {
+        // If they actually equal but have different pointers, update the mapping
         // update mapping
         mapping.set(leftLoro.id, leftNode);
       } else {
@@ -493,8 +500,9 @@ export function updateLoroMapChildren(
         rightLoro != null &&
         rightNode != null &&
         isContainer(rightLoro) &&
-        eqLoroObjNode(rightLoro, rightNode, mapping)
+        eqLoroObjNode(rightLoro, rightNode)
       ) {
+        // If they actually equal but have different pointers, update the mapping
         // update mapping
         mapping.set(rightLoro.id, rightNode);
       } else {
@@ -558,6 +566,7 @@ export function updateLoroMapChildren(
         updateLoroMap(rightLoro as LoroMap, rightNode as Node, mapping);
         right += 1;
       } else {
+        // recreate the element at left
         const child = loroChildren.get(left);
         if (isContainer(child)) {
           mapping.delete(child.id);
@@ -577,6 +586,7 @@ export function updateLoroMapChildren(
   ) {
     // Only delete the content of the LoroText to retain remote changes on the same LoroText object
     const loroText = loroChildren.get(0) as LoroText;
+    // NOTE: why do we need to delete it in the mapping?
     mapping.delete(loroText.id);
     loroText.delete(0, loroText.length);
   } else if (loroDelLength > 0) {
@@ -595,6 +605,8 @@ export function updateLoroMapChildren(
         createLoroChild(loroChildren, left + i, nodeChild, mapping),
       );
   }
+
+  // FIXME: should we update the mapping of children here?
 }
 
 export function clearChangedNodes(
