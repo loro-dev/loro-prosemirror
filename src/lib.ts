@@ -1,5 +1,5 @@
 import { simpleDiff } from "lib0/diff";
-import deepEq from "fast-deep-equal";
+import { equalityDeep } from "lib0/function"
 
 import {
   ContainerID,
@@ -440,7 +440,7 @@ export function updateLoroMapAttributes(
   const pAttrs = node.attrs;
   for (const [key, value] of Object.entries(node.attrs)) {
     if (value !== null) {
-      if (!deepEq(attrs.get(key), value)) {
+      if (!equalityDeep(attrs.get(key), value)) {
         attrs.set(key, value);
       }
     } else {
