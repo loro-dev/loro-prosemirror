@@ -5,7 +5,7 @@ import {
   LoroNodeMapping,
   getLoroMapAttributes,
   getLoroMapChildren,
-} from "../src";
+} from "../src/lib";
 import { Loro, LoroList, LoroMap, LoroText } from "loro-crdt";
 
 export function createEditorState(schema: Schema, content: any): EditorState {

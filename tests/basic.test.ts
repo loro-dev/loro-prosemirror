@@ -5,7 +5,7 @@ import { EditorState } from "prosemirror-state";
 import { Loro, LoroText } from "loro-crdt";
 
 import {
-  LoroDoc,
+  LoroDocType,
   LoroNodeMapping,
   ROOT_DOC_KEY,
   clearChangedNodes,
@@ -13,7 +13,7 @@ import {
   getLoroMapAttributes,
   getLoroMapChildren,
   updateLoroOnPmChange,
-} from "../src";
+} from "../src/lib";
 
 import { schema } from "./schema";
 import {
@@ -196,14 +196,14 @@ const exampleLoroContent = {
 describe("updateDoc", () => {
   test("empty doc gets populated correctly", () => {
     const editorState = createEditorState(schema, examplePmContent.doc);
-    const loroDoc: LoroDoc = new Loro();
+    const loroDoc: LoroDocType = new Loro();
     const mapping: LoroNodeMapping = new Map();
     updateLoroOnPmChange(loroDoc, mapping, editorState, editorState);
     expect(loroDoc.toJson()).toEqual(exampleLoroContent);
   });
 
   test("doc syncs changes correctly", () => {
-    const loroDoc: LoroDoc = new Loro();
+    const loroDoc: LoroDocType = new Loro();
     const mapping: LoroNodeMapping = new Map();
 
     // First we create an empty content
@@ -393,7 +393,7 @@ describe("createNodeFromLoroObj", () => {
     // FIXME: Reusing the logic here to populate the loro doc as its
     // json representation doesn't contain text marks
     const _editorState = createEditorState(schema, examplePmContent.doc);
-    const loroDoc: LoroDoc = new Loro();
+    const loroDoc: LoroDocType = new Loro();
     const mapping: LoroNodeMapping = new Map();
     updateLoroOnPmChange(loroDoc, mapping, _editorState, _editorState);
 
@@ -407,7 +407,7 @@ describe("createNodeFromLoroObj", () => {
   });
 
   test("node syncs changes correctly", async () => {
-    const loroDoc: LoroDoc = new Loro();
+    const loroDoc: LoroDocType = new Loro();
     const mapping: LoroNodeMapping = new Map();
 
     loroDoc.subscribe((event) => clearChangedNodes(loroDoc, event, mapping));

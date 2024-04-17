@@ -5,6 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
     "test": "vitest run",
     "coverage": "vitest run --coverage"
   },
@@ -16,9 +17,9 @@
     "loro-crdt": "^0.14.4"
   },
   "peerDependencies": {
-    "prosemirror-model": "^1.7.1",
-    "prosemirror-state": "^1.2.3",
-    "prosemirror-view": "^1.9.10"
+    "prosemirror-model": "^1.18.1",
+    "prosemirror-state": "^1.4.1",
+    "prosemirror-view": "^1.28.0"
   },
   "devDependencies": {
     "@typescript-eslint/parser": "^7.4.0",

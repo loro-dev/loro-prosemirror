@@ -1,8 +1,8 @@
 import { Awareness, Cursor, PeerID } from "loro-crdt";
 
 export class CursorAwareness extends Awareness<{
-  anchor?: Uint8Array;
-  focus?: Uint8Array;
+  anchor: Uint8Array | null;
+  focus: Uint8Array | null;
 }> {
   constructor(peer: PeerID, timeout: number = 30_000) {
     super(peer, timeout);
@@ -12,8 +12,8 @@ export class CursorAwareness extends Awareness<{
     const ans: { [peer in PeerID]: { anchor?: Cursor; focus?: Cursor } } = {};
     for (const [peer, state] of Object.entries(this.getAllStates())) {
       ans[peer as PeerID] = {
-        anchor: state.anchor && Cursor.decode(state.anchor),
-        focus: state.focus && Cursor.decode(state.focus),
+        anchor: state.anchor ? Cursor.decode(state.anchor) : undefined,
+        focus: state.focus ? Cursor.decode(state.focus) : undefined,
       };
     }
     return ans;
@@ -21,8 +21,8 @@ export class CursorAwareness extends Awareness<{
 
   setLocal(state: { anchor?: Cursor; focus?: Cursor }) {
     this.setLocalState({
-      anchor: state.anchor?.encode(),
-      focus: state.focus?.encode(),
+      anchor: state.anchor?.encode() || null,
+      focus: state.focus?.encode() || null,
     });
   }
 

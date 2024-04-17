@@ -23,7 +23,7 @@ type LoroNodeContainerType = {
   [NODE_NAME_KEY]: string
 }
 
-export type LoroDoc = Loro<{
+export type LoroDocType = Loro<{
   doc: LoroMap<LoroNodeContainerType>
 }>;
 export type LoroNode = LoroMap<LoroNodeContainerType>
@@ -63,7 +63,7 @@ export const NODE_NAME_KEY = "nodeName";
 export const WEAK_NODE_TO_LORO_CONTAINER_MAPPING = new WeakMap<Node, ContainerID>();
 
 export function updateLoroOnPmChange(
-  doc: LoroDoc,
+  doc: LoroDocType,
   mapping: LoroNodeMapping,
   oldEditorState: EditorState,
   newEditorState: EditorState,
@@ -639,7 +639,7 @@ export function updateLoroMapChildren(
 }
 
 export function clearChangedNodes(
-  doc: LoroDoc,
+  doc: LoroDocType,
   event: LoroEventBatch,
   mapping: LoroNodeMapping,
 ) {

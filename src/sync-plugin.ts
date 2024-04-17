@@ -1,4 +1,4 @@
-import { Loro, LoroEventBatch, LoroMap, LoroText } from "loro-crdt";
+import { Loro, LoroEventBatch, LoroList, LoroMap, LoroText } from "loro-crdt";
 import {
   Plugin,
   PluginKey,
@@ -9,8 +9,11 @@ import {
 import { EditorView } from "prosemirror-view";
 import { Slice, Fragment } from "prosemirror-model";
 import {
-  LoroDoc,
+  ATTRIBUTES_KEY,
+  CHILDREN_KEY,
+  LoroDocType,
   LoroNodeMapping,
+  ROOT_DOC_KEY,
   clearChangedNodes,
   createNodeFromLoroObj,
   updateLoroOnPmChange,
@@ -23,17 +26,20 @@ type PluginTransactionType =
     type: "doc-changed";
   }
   | {
+    type: "non-local-updates";
+  }
+  | {
     type: "update-state";
     state: Partial<LoroSyncPluginState>;
   };
 
 export interface LoroSyncPluginProps {
-  doc: LoroDoc;
+  doc: Loro;
   mapping?: LoroNodeMapping;
-  changedBy: "local" | "import" | "checkout";
 }
 
 interface LoroSyncPluginState extends LoroSyncPluginProps {
+  changedBy: "local" | "import" | "checkout";
   mapping: LoroNodeMapping;
   snapshot?: Loro | null;
   view?: EditorView;
@@ -59,10 +65,15 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
         const meta = tr.getMeta(
           loroSyncPluginKey,
         ) as PluginTransactionType | null;
-        state.changedBy = "local";
+        if (meta?.type === "non-local-updates") {
+          state.changedBy = "import";
+        } else {
+
+          state.changedBy = "local";
+        }
         switch (meta?.type) {
           case "doc-changed":
-            updateLoroOnPmChange(state.doc, state.mapping, oldEditorState, newEditorState);
+            updateLoroOnPmChange(state.doc as LoroDocType, state.mapping, oldEditorState, newEditorState);
             break;
           case "update-state":
             state = { ...state, ...meta.state };
@@ -103,20 +114,34 @@ function init(view: EditorView) {
   }
   docSubscription = state.doc.subscribe((event) => updateNodeOnLoroEvent(view, event));
 
-  const innerDoc = state.doc.getMap("doc");
+  const innerDoc = (state.doc as LoroDocType).getMap("doc");
   const mapping: LoroNodeMapping = new Map();
-  const schema = view.state.schema;
-  const node = createNodeFromLoroObj(schema, innerDoc, mapping);
-  const tr = view.state.tr.replace(
-    0,
-    view.state.doc.content.size,
-    new Slice(Fragment.from(node), 0, 0),
-  );
-  tr.setMeta(loroSyncPluginKey, {
-    type: "update-state",
-    state: { mapping, docSubscription, snapshot: null },
-  });
-  view.dispatch(tr);
+  if (innerDoc.size === 0) {
+    // Empty doc
+    const tr = view.state.tr.delete(
+      0,
+      view.state.doc.content.size,
+    )
+    tr.setMeta(loroSyncPluginKey, {
+      type: "update-state",
+      state: { mapping, docSubscription, snapshot: null },
+    });
+    view.dispatch(tr);
+  } else {
+    const schema = view.state.schema;
+    // Create node from loro object
+    const node = createNodeFromLoroObj(schema, innerDoc, mapping);
+    const tr = view.state.tr.replace(
+      0,
+      view.state.doc.content.size,
+      new Slice(Fragment.from(node), 0, 0),
+    );
+    tr.setMeta(loroSyncPluginKey, {
+      type: "update-state",
+      state: { mapping, docSubscription, snapshot: null },
+    });
+    view.dispatch(tr);
+  }
 }
 
 function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
@@ -127,10 +152,10 @@ function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
   }
 
   const mapping = state.mapping;
-  clearChangedNodes(state.doc, event, mapping);
+  clearChangedNodes(state.doc as LoroDocType, event, mapping);
   const node = createNodeFromLoroObj(
     view.state.schema,
-    state.doc.getMap("doc"),
+    (state.doc as LoroDocType).getMap("doc"),
     mapping,
   );
   const tr = view.state.tr.replace(
@@ -138,5 +163,8 @@ function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
     view.state.doc.content.size,
     new Slice(Fragment.from(node), 0, 0),
   );
+  tr.setMeta(loroSyncPluginKey, {
+    type: "non-local-updates",
+  });
   view.dispatch(tr);
 }
