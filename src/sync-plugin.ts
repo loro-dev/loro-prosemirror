@@ -9,6 +9,7 @@ import {
 import { EditorView } from "prosemirror-view";
 import { Slice, Fragment } from "prosemirror-model";
 import {
+  LoroDoc,
   LoroNodeMapping,
   clearChangedNodes,
   createNodeFromLoroObj,
@@ -27,8 +28,9 @@ type PluginTransactionType =
   };
 
 export interface LoroSyncPluginProps {
-  doc: Loro;
+  doc: LoroDoc;
   mapping?: LoroNodeMapping;
+  changedBy: "local" | "import" | "checkout";
 }
 
 interface LoroSyncPluginState extends LoroSyncPluginProps {
@@ -51,11 +53,13 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
       init: (config, editorState): LoroSyncPluginState => ({
         doc: props.doc,
         mapping: props.mapping ?? new Map(),
+        changedBy: "local"
       }),
       apply: (tr, state, oldEditorState, newEditorState) => {
         const meta = tr.getMeta(
           loroSyncPluginKey,
         ) as PluginTransactionType | null;
+        state.changedBy = "local";
         switch (meta?.type) {
           case "doc-changed":
             updateLoroOnPmChange(state.doc, state.mapping, oldEditorState, newEditorState);
@@ -116,13 +120,13 @@ function init(view: EditorView) {
 }
 
 function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
-  if (event.local) {
+  const state = loroSyncPluginKey.getState(view.state) as LoroSyncPluginState;
+  state.changedBy = event.by;
+  if (event.by === "local") {
     return;
   }
 
-  const state = loroSyncPluginKey.getState(view.state) as LoroSyncPluginState;
   const mapping = state.mapping;
-
   clearChangedNodes(state.doc, event, mapping);
   const node = createNodeFromLoroObj(
     view.state.schema,
