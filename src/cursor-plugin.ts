@@ -20,6 +20,7 @@ function createDecorations(
   createCursor: (user: PeerID) => Element
 ): DecorationSet {
   const all = awareness.getAll();
+  // console.log("createDecorations called", all)
   const d: Decoration[] = [];
   const loroState = loroSyncPluginKey.getState(state);
   if (!loroState) {
@@ -35,13 +36,29 @@ function createDecorations(
     }
 
     if (!cursor.anchor || !cursor.focus) {
+      // console.log("createDecorations: No cursor", cursor)
       continue;
     }
 
-    const anchor = cursorToAbsolutePosition(state.doc, cursor.anchor, doc as LoroDocType, loroState.mapping);
-    const focus = cursorEq(cursor.focus, cursor.anchor) ? anchor : cursorToAbsolutePosition(state.doc, cursor.focus, doc as LoroDocType, loroState.mapping);
+    const [focus, focusCursorUpdate] = cursorToAbsolutePosition(state.doc, cursor.focus, doc as LoroDocType, loroState.mapping);
     d.push(Decoration.widget(focus, createCursor(peer as PeerID)));
-    d.push(Decoration.inline(Math.min(anchor, focus), Math.max(anchor, focus), createSelection(peer as PeerID)));
+    if (!cursorEq(cursor.anchor, cursor.focus)) {
+      const [anchor, anchorCursorUpdate] = cursorToAbsolutePosition(state.doc, cursor.anchor, doc as LoroDocType, loroState.mapping);
+      d.push(Decoration.inline(Math.min(anchor, focus), Math.max(anchor, focus), createSelection(peer as PeerID)));
+      if (focusCursorUpdate || anchorCursorUpdate) {
+        awareness.setLocal({
+          anchor: anchorCursorUpdate || cursor.anchor,
+          focus: focusCursorUpdate || cursor.focus,
+        })
+      }
+    } else {
+      if (focusCursorUpdate) {
+        awareness.setLocal({
+          focus: focusCursorUpdate,
+          anchor: focusCursorUpdate
+        })
+      }
+    }
   }
 
   const decorations = DecorationSet.create(state.doc, d);
@@ -80,6 +97,7 @@ export const LoroCursorPlugin = (
         return createDecorations(state, awareness, plugin, createSelection, createCursor);
       },
       apply(tr, prevState, _oldState, newState) {
+        // console.log("apply called")
         const loroState = loroSyncPluginKey.getState(newState);
         const loroCursorState: { awarenessUpdated: boolean } = tr.getMeta(
           loroCursorPluginKey,
@@ -137,11 +155,10 @@ export const LoroCursorPlugin = (
           );
           if (
             current == null ||
-            current.anchor?.containerId() != anchor?.containerId() ||
-            current.anchor?.pos()?.counter != anchor?.pos()?.counter ||
-            current.focus?.containerId() != focus?.containerId() ||
-            current.focus?.pos()?.counter != focus?.pos()?.counter
+            !cursorEq(current.anchor, anchor) ||
+            !cursorEq(current.focus, focus)
           ) {
+            // console.log("UpdateCursorInfo: Update", selection.anchor, selection.head, anchor, focus)
             awareness.setLocal({
               anchor,
               focus
@@ -176,7 +193,7 @@ export const LoroCursorPlugin = (
 };
 
 
-function absolutePositionToCursor(pmRootNode: Node, anchor: number, doc: LoroDocType, _mapping: LoroNodeMapping): Cursor | undefined {
+function absolutePositionToCursor(pmRootNode: Node, anchor: number, doc: LoroDocType, mapping: LoroNodeMapping): Cursor | undefined {
   const pos = pmRootNode.resolve(anchor);
   const nodeParent = pos.node(pos.depth);
   const offset = pos.parentOffset
@@ -189,23 +206,44 @@ function absolutePositionToCursor(pmRootNode: Node, anchor: number, doc: LoroDoc
   const loroMap: LoroNode = doc.getMap(loroId as any);
   const children = loroMap.get(CHILDREN_KEY);
   const text = children.get(0);
+  if (text == null) {
+    // This is a new line, so we can use the list cursor instead
+    return children.getCursor(0)
+  }
   if (text instanceof LoroText) {
     // console.log("abs", offset);
     return text.getCursor(offset);
   } else {
+    console.error("Unreachable code")
     return undefined;
   }
 }
 
 
-function cursorToAbsolutePosition(_pmRootNode: Node, cursor: Cursor, doc: LoroDocType, mapping: LoroNodeMapping): number {
-  const textId = cursor.containerId()
-  const loroText = doc.getText(textId);
-  let pos = doc.getCursorPos(cursor);
-  let index = pos.offset;
+function cursorToAbsolutePosition(_pmRootNode: Node, cursor: Cursor, doc: LoroDocType, mapping: LoroNodeMapping): [number, Cursor | undefined] {
+  const containerId = cursor.containerId()
+  let index = 0;
+  let targetChildId: ContainerID;
+  let loroNode: LoroNode | undefined;
+  let update: Cursor | undefined;
+  if (containerId.endsWith("List")) {
+    const loroList = doc.getList(containerId as any);
+    const parentNode = loroList.parent();
+    if (!parentNode) {
+      return [1, undefined];
+    }
+
+    targetChildId = parentNode.id;
+    loroNode = parentNode.parent()?.parent() as LoroNode | undefined;
+  } else {
+    const loroText = doc.getText(containerId);
+    const pos = doc.getCursorPos(cursor);
+    update = pos.update;
+    index = pos.offset;
+    targetChildId = loroText.id;
+    loroNode = loroText.parent()?.parent() as LoroNode | undefined;
+  }
   // console.log("found offset", index);
-  let targetChildId = loroText.id;
-  let loroNode = loroText.parent()?.parent() as LoroNode | undefined;
   while (loroNode != null) {
     const children = loroNode.get(CHILDREN_KEY);
     if (children instanceof LoroList) {
@@ -236,6 +274,7 @@ function cursorToAbsolutePosition(_pmRootNode: Node, cursor: Cursor, doc: LoroDo
     }
   }
 
-  return index + 1;
+  // console.log("parsed index", index)
+  return [index + 1, update];
 }
 

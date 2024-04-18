@@ -39,7 +39,14 @@ export class CursorAwareness extends Awareness<{
   }
 }
 
-export function cursorEq(a: Cursor, b: Cursor) {
+export function cursorEq(a?: Cursor | null, b?: Cursor | null) {
+  if (!a && !b) {
+    return true
+  }
+  if (!a || !b) {
+    return false
+  }
+
   let aPos = a.pos();
   let bPos = b.pos();
   return aPos?.peer == bPos?.peer && aPos?.counter == bPos?.counter && a.containerId() == b.containerId()
