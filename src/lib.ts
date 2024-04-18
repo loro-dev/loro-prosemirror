@@ -146,6 +146,9 @@ export function createNodeFromLoroObj(
   }
 
   if (retval != null) {
+    if (!Array.isArray(retval)) {
+      WEAK_NODE_TO_LORO_CONTAINER_MAPPING.set(retval, obj.id);
+    }
     mapping.set(obj.id, retval);
   } else {
     mapping.delete(obj.id);
@@ -421,6 +424,7 @@ export function createLoroMap(
     createLoroChild(children, null, child, mapping),
   );
 
+  WEAK_NODE_TO_LORO_CONTAINER_MAPPING.set(node, obj.id);
   mapping.set(obj.id, node);
   return obj;
 }
@@ -510,6 +514,7 @@ export function updateLoroMapChildren(
       ) {
         // If they actually equal but have different pointers, update the mapping
         // update mapping
+        WEAK_NODE_TO_LORO_CONTAINER_MAPPING.set(leftNode as Node, leftLoro.id);
         mapping.set(leftLoro.id, leftNode);
       } else {
         break;
@@ -535,6 +540,7 @@ export function updateLoroMapChildren(
       ) {
         // If they actually equal but have different pointers, update the mapping
         // update mapping
+        WEAK_NODE_TO_LORO_CONTAINER_MAPPING.set(rightNode as Node, rightLoro.id);
         mapping.set(rightLoro.id, rightNode);
       } else {
         break;
@@ -631,7 +637,7 @@ export function updateLoroMapChildren(
 
   if (left + right < nodeChildLength) {
     nodeChildren
-      .slice(left, left + nodeChildLength - right)
+      .slice(left, nodeChildLength - right)
       .forEach((nodeChild, i) =>
         createLoroChild(loroChildren, left + i, nodeChild, mapping),
       );
