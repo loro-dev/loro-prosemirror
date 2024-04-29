@@ -1,10 +1,11 @@
 import { Schema } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
 import {
+  LoroNode,
   LoroNodeMapping,
   getLoroMapAttributes,
   getLoroMapChildren,
-} from "../src";
+} from "../src/lib";
 import { Loro, LoroList, LoroMap, LoroText } from "loro-crdt";
 
 export function createEditorState(schema: Schema, content: any): EditorState {
@@ -19,16 +20,16 @@ export function insertLoroText(parent: LoroList): LoroText {
   return parent.insertContainer(parent.length, new LoroText());
 }
 
-export function insertLoroMap(parent: LoroList, nodeName: string): LoroMap {
+export function insertLoroMap(parent: LoroList, nodeName: string): LoroNode {
   const obj = parent.insertContainer(parent.length, new LoroMap());
   setupLoroMap(obj, nodeName);
-  return obj;
+  return obj as unknown as LoroNode;
 }
 
 export function setupLoroMap(obj: LoroMap, nodeName: string): void {
   obj.set("nodeName", nodeName);
-  getLoroMapChildren(obj);
-  getLoroMapAttributes(obj);
+  getLoroMapChildren(obj as unknown as LoroNode);
+  getLoroMapAttributes(obj as unknown as LoroNode);
 }
 
 export function oneMs(): Promise<void> {

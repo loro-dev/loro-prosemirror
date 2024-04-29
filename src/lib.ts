@@ -16,9 +16,20 @@ import {
 import { EditorState } from "prosemirror-state";
 import { Attrs, Mark, Node, Schema } from "prosemirror-model";
 
+type LoroChildrenListType = LoroList<LoroMap<LoroNodeContainerType> | LoroText>;
+type LoroNodeContainerType = {
+  [CHILDREN_KEY]: LoroChildrenListType,
+  [ATTRIBUTES_KEY]: LoroMap,
+  [NODE_NAME_KEY]: string
+}
+
+export type LoroDocType = Loro<{
+  doc: LoroMap<LoroNodeContainerType>
+}>;
+export type LoroNode = LoroMap<LoroNodeContainerType>
 export type LoroContainer =
-  | LoroList<LoroType[]>
-  | LoroMap<{ [key: string]: LoroType }>
+  | LoroChildrenListType
+  | LoroMap<LoroNodeContainerType>
   | LoroText
   | LoroTree;
 export type LoroType = LoroContainer | Value;
@@ -27,11 +38,11 @@ export type LoroType = LoroContainer | Value;
 // or to the children of a ProseMirror text node.
 //
 // - For an non-text, it will be a LoroMap mapping to a Node
-// - For a text, it will be a LoroText mapping to Node. (PM stores 
-//   rich text as arrays of text nodes, each one with its marks, 
+// - For a text, it will be a LoroText mapping to several Nodes. 
+//   (PM stores rich text as arrays of text nodes, each one with its marks, 
 //   and that's why we have some conversion utilities between both)
 //
-// So that ContainerID should always be of a LoroMap or a LoroText.
+// So ContainerID should always be of a LoroMap or a LoroText.
 // Anything else is considered an error.
 //
 // A PM non-text node, it has attributes and children, which represents as a 
@@ -45,9 +56,14 @@ export type LoroNodeMapping = Map<ContainerID, Node | Node[]>;
 export const ROOT_DOC_KEY = "doc";
 export const ATTRIBUTES_KEY = "attributes";
 export const CHILDREN_KEY = "children";
+export const NODE_NAME_KEY = "nodeName";
+/**
+ * Maps PM non-text nodes to their corresponding Loro Container IDs.
+ */
+export const WEAK_NODE_TO_LORO_CONTAINER_MAPPING = new WeakMap<Node, ContainerID>();
 
 export function updateLoroOnPmChange(
-  doc: Loro,
+  doc: LoroDocType,
   mapping: LoroNodeMapping,
   oldEditorState: EditorState,
   newEditorState: EditorState,
@@ -65,7 +81,7 @@ export function updateLoroOnPmChange(
 
 export function createNodeFromLoroObj(
   schema: Schema,
-  obj: LoroMap,
+  obj: LoroNode,
   mapping: LoroNodeMapping,
 ): Node;
 export function createNodeFromLoroObj(
@@ -75,7 +91,7 @@ export function createNodeFromLoroObj(
 ): Node[];
 export function createNodeFromLoroObj(
   schema: Schema,
-  obj: LoroMap | LoroText,
+  obj: LoroNode | LoroText,
   mapping: LoroNodeMapping,
 ): Node | Node[] | null {
   let retval: Node | Node[] | null = mapping.get(obj.id) ?? null;
@@ -99,6 +115,7 @@ export function createNodeFromLoroObj(
 
     try {
       retval = schema.node(nodeName, attributes.toJson(), mappedChildren);
+      WEAK_NODE_TO_LORO_CONTAINER_MAPPING.set(retval, obj.id);
     } catch (e) {
       // An error occurred while creating the node.
       // This is probably a result of a concurrent action.
@@ -129,6 +146,9 @@ export function createNodeFromLoroObj(
   }
 
   if (retval != null) {
+    if (!Array.isArray(retval)) {
+      WEAK_NODE_TO_LORO_CONTAINER_MAPPING.set(retval, obj.id);
+    }
     mapping.set(obj.id, retval);
   } else {
     mapping.delete(obj.id);
@@ -138,7 +158,7 @@ export function createNodeFromLoroObj(
 }
 
 export function createLoroChild(
-  parentList: LoroList,
+  parentList: LoroChildrenListType,
   pos: number | null,
   nodeOrNodeList: Node | Node[],
   mapping: LoroNodeMapping,
@@ -316,7 +336,7 @@ function normalizeNodeContent(node: Node): (Node | Node[])[] {
 }
 
 function computeChildEqualityFactor(
-  obj: LoroMap,
+  obj: LoroNode,
   node: Node,
   mapping: LoroNodeMapping,
 ): {
@@ -381,14 +401,14 @@ function computeChildEqualityFactor(
 }
 
 export function createLoroMap(
-  parentList: LoroList,
+  parentList: LoroChildrenListType,
   pos: number | null,
   node: Node,
   mapping: LoroNodeMapping,
 ): LoroMap {
   const obj = parentList
     .insertContainer(pos ?? parentList.length, new LoroMap())
-    .getAttached()!;
+    .getAttached()! as LoroNode;
 
   obj.set("nodeName", node.type.name);
 
@@ -404,16 +424,18 @@ export function createLoroMap(
     createLoroChild(children, null, child, mapping),
   );
 
+  WEAK_NODE_TO_LORO_CONTAINER_MAPPING.set(node, obj.id);
   mapping.set(obj.id, node);
   return obj;
 }
 
 export function updateLoroMap(
-  obj: LoroMap,
+  obj: LoroNode,
   node: Node,
   mapping: LoroNodeMapping,
 ) {
   mapping.set(obj.id, node);
+  WEAK_NODE_TO_LORO_CONTAINER_MAPPING.set(node, obj.id);
 
   if (!eqNodeName(obj, node)) {
     throw new Error("node name mismatch!");
@@ -455,12 +477,12 @@ export function updateLoroMapAttributes(
   }
 }
 
-export function getLoroMapChildren(obj: LoroMap): LoroList<LoroType[]> {
+export function getLoroMapChildren(obj: LoroNode): LoroChildrenListType {
   return obj.getOrCreateContainer(CHILDREN_KEY, new LoroList());
 }
 
 export function updateLoroMapChildren(
-  obj: LoroMap,
+  obj: LoroNode,
   node: Node,
   mapping: LoroNodeMapping,
 ): void {
@@ -492,6 +514,7 @@ export function updateLoroMapChildren(
       ) {
         // If they actually equal but have different pointers, update the mapping
         // update mapping
+        WEAK_NODE_TO_LORO_CONTAINER_MAPPING.set(leftNode as Node, leftLoro.id);
         mapping.set(leftLoro.id, leftNode);
       } else {
         break;
@@ -517,6 +540,7 @@ export function updateLoroMapChildren(
       ) {
         // If they actually equal but have different pointers, update the mapping
         // update mapping
+        WEAK_NODE_TO_LORO_CONTAINER_MAPPING.set(rightNode as Node, rightLoro.id);
         mapping.set(rightLoro.id, rightNode);
       } else {
         break;
@@ -548,12 +572,12 @@ export function updateLoroMapChildren(
       if (updateLeft && updateRight) {
         // decide which which element to update
         const leftEquality = computeChildEqualityFactor(
-          leftLoro as LoroMap,
+          leftLoro as LoroNode,
           leftNode as Node,
           mapping,
         );
         const rightEquality = computeChildEqualityFactor(
-          rightLoro as LoroMap,
+          rightLoro as LoroNode,
           rightNode as Node,
           mapping,
         );
@@ -573,10 +597,10 @@ export function updateLoroMapChildren(
       }
 
       if (updateLeft) {
-        updateLoroMap(leftLoro as LoroMap, leftNode as Node, mapping);
+        updateLoroMap(leftLoro as LoroNode, leftNode as Node, mapping);
         left += 1;
       } else if (updateRight) {
-        updateLoroMap(rightLoro as LoroMap, rightNode as Node, mapping);
+        updateLoroMap(rightLoro as LoroNode, rightNode as Node, mapping);
         right += 1;
       } else {
         // recreate the element at left
@@ -607,13 +631,13 @@ export function updateLoroMapChildren(
       .toArray()
       .slice(left, left + loroDelLength)
       .filter(isContainer)
-      .forEach((type) => mapping.delete(type.id));
+      .forEach((type) => mapping.delete((type as LoroContainer).id));
     loroChildren.delete(left, loroDelLength);
   }
 
   if (left + right < nodeChildLength) {
     nodeChildren
-      .slice(left, left + nodeChildLength - right)
+      .slice(left, nodeChildLength - right)
       .forEach((nodeChild, i) =>
         createLoroChild(loroChildren, left + i, nodeChild, mapping),
       );
@@ -621,7 +645,7 @@ export function updateLoroMapChildren(
 }
 
 export function clearChangedNodes(
-  doc: Loro,
+  doc: LoroDocType,
   event: LoroEventBatch,
   mapping: LoroNodeMapping,
 ) {

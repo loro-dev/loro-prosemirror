@@ -5,15 +5,12 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  fast-deep-equal:
-    specifier: ^3.1.3
-    version: 3.1.3
   lib0:
     specifier: ^0.2.42
     version: 0.2.93
   loro-crdt:
-    specifier: ^0.13.1
-    version: 0.13.1
+    specifier: ^0.15.0
+    version: 0.15.0
 
 devDependencies:
   '@typescript-eslint/parser':
@@ -1024,6 +1021,7 @@ packages:
 
   /fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
+    dev: true
 
   /fast-glob@3.3.2:
     resolution: {integrity: sha512-oX2ruAFQwf/Orj8m737Y5adxDQO0LAB7/S5MnxCdTNDd4p6BsyIVsv9JQsATbTSq8KHRpLwIHbVlUNatxd+1Ow==}
@@ -1333,14 +1331,14 @@ packages:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
     dev: true
 
-  /loro-crdt@0.13.1:
-    resolution: {integrity: sha512-jYHywGTohcM8f25eA+cF2Bai2yMkpxlebHRlVAMTvVIlVKwtRjh25UH0qZdbbc1YXra67lanJ/VeoP16o63ooQ==}
+  /loro-crdt@0.15.0:
+    resolution: {integrity: sha512-fRDXQYAtrGbRKuhHcLigZItkov5veGptbObE0XkD3cUinrBlIQ60ENO9g9yd9OhowaZ16+15wEseIEyTorjX6g==}
     dependencies:
-      loro-wasm: 0.13.1
+      loro-wasm: 0.15.0
     dev: false
 
-  /loro-wasm@0.13.1:
-    resolution: {integrity: sha512-IreiBc4H4ge2tjJryzTN8yr3GIG8nPGQWREQSycghW5+WnX6jAAH3FiRap1s0aEPtKpIpPhFV8T3W0cHKwIvjg==}
+  /loro-wasm@0.15.0:
+    resolution: {integrity: sha512-BYVs3z/zs7fW2BXTwHPbVxitJ2l/EdCheT4MhH2ZQGCmi7SKHUoUZ5svW0sksuVmS9potDRcXAgtVvNtfWvCSw==}
     dev: false
 
   /loupe@2.3.7:
