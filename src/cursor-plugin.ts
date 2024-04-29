@@ -10,7 +10,6 @@ const loroCursorPluginKey = new PluginKey<{ awarenessUpdated: boolean }>(
   "loro-cursor",
 );
 
-const WEAK_MAP: WeakMap<Plugin<DecorationSet>, DecorationSet> = new WeakMap();
 
 function createDecorations(
   state: EditorState,
@@ -36,7 +35,6 @@ function createDecorations(
     }
 
     if (!cursor.anchor || !cursor.focus) {
-      // console.log("createDecorations: No cursor", cursor)
       continue;
     }
 
@@ -62,7 +60,6 @@ function createDecorations(
   }
 
   const decorations = DecorationSet.create(state.doc, d);
-  WEAK_MAP.set(plugin, decorations);
   return decorations;
 }
 
@@ -97,7 +94,6 @@ export const LoroCursorPlugin = (
         return createDecorations(state, awareness, plugin, createSelection, createCursor);
       },
       apply(tr, prevState, _oldState, newState) {
-        // console.log("apply called")
         const loroState = loroSyncPluginKey.getState(newState);
         const loroCursorState: { awarenessUpdated: boolean } = tr.getMeta(
           loroCursorPluginKey,

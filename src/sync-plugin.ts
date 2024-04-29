@@ -68,7 +68,6 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
         if (meta?.type === "non-local-updates") {
           state.changedBy = "import";
         } else {
-
           state.changedBy = "local";
         }
         switch (meta?.type) {

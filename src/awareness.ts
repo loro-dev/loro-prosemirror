@@ -47,8 +47,8 @@ export function cursorEq(a?: Cursor | null, b?: Cursor | null) {
     return false
   }
 
-  let aPos = a.pos();
-  let bPos = b.pos();
-  return aPos?.peer == bPos?.peer && aPos?.counter == bPos?.counter && a.containerId() == b.containerId()
+  const aPos = a.pos();
+  const bPos = b.pos();
+  return aPos?.peer === bPos?.peer && aPos?.counter === bPos?.counter && a.containerId() === b.containerId()
 }
 
