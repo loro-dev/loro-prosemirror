@@ -56,5 +56,5 @@ export function Editor({
     });
   }, [awareness, onCreateLoro]);
 
-  return <div id="editor" style={{minHeight: 200, margin: 16}} ref={editorDom} />;
+  return <div id="editor" style={{ minHeight: 200, margin: 16 }} ref={editorDom} />;
 }

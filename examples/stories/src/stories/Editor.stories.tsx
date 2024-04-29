@@ -23,9 +23,10 @@ export const Basic: Story = {};
 function createLoro() {
   const doc = new Loro();
   doc.configTextStyle({
-    "em": {expand: "after"},
-    "strong": {expand: "after"},
-    "code": {expand: "none"},
+    "em": { expand: "after" },
+    "strong": { expand: "after" },
+    "code": { expand: "none" },
+    "link": { expand: "none" },
   })
   return doc
 }
@@ -59,7 +60,7 @@ export const Sync = () => {
       }
     })
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return <div>

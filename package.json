@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "lib0": "^0.2.42",
-    "loro-crdt": "^0.14.4"
+    "loro-crdt": "^0.15.0"
   },
   "peerDependencies": {
     "prosemirror-model": "^1.18.1",

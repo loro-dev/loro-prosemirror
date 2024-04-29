@@ -12,7 +12,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "loro-crdt": "^0.14.4",
+    "loro-crdt": "^0.15.0",
     "loro-prosemirror": "link:../..",
     "prosemirror-example-setup": "^1.2.2",
     "prosemirror-model": "^1.20.0",

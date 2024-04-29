@@ -19,7 +19,6 @@ function createDecorations(
   createCursor: (user: PeerID) => Element
 ): DecorationSet {
   const all = awareness.getAll();
-  // console.log("createDecorations called", all)
   const d: Decoration[] = [];
   const loroState = loroSyncPluginKey.getState(state);
   if (!loroState) {
@@ -135,7 +134,6 @@ export const LoroCursorPlugin = (
 
         const pmRootNode = view.state.doc;
         if (view.hasFocus()) {
-          // console.log("UpdateCursorInfo: Has focus")
           const selection = getSelection(view.state);
           const anchor = absolutePositionToCursor(
             pmRootNode,
@@ -154,16 +152,13 @@ export const LoroCursorPlugin = (
             !cursorEq(current.anchor, anchor) ||
             !cursorEq(current.focus, focus)
           ) {
-            // console.log("UpdateCursorInfo: Update", selection.anchor, selection.head, anchor, focus)
             awareness.setLocal({
               anchor,
               focus
             });
           } else {
-            // console.log("UpdateCursorInfo: No change", selection, anchor, focus, current)
           }
         } else if (current?.focus != null) {
-          // console.log("UpdateCursorInfo: No focus")
           awareness.setLocal({});
         }
       };
@@ -201,24 +196,43 @@ function absolutePositionToCursor(pmRootNode: Node, anchor: number, doc: LoroDoc
 
   const loroMap: LoroNode = doc.getMap(loroId as any);
   const children = loroMap.get(CHILDREN_KEY);
-  const text = children.get(0);
-  if (text == null) {
+  if (children.length == 0) {
     // This is a new line, so we can use the list cursor instead
     return children.getCursor(0)
   }
-  if (text instanceof LoroText) {
-    // console.log("abs", offset);
-    return text.getCursor(offset);
-  } else {
-    console.error("Unreachable code")
-    return undefined;
+
+  let index = offset;
+  let childIndex = 0;
+  while (index >= 0 && childIndex < children.length) {
+    const child = children.get(childIndex);
+    childIndex += 1;
+    if (child instanceof LoroText) {
+      if (child.length >= index) {
+        return child.getCursor(index);
+      } else {
+        index -= child.length;
+      }
+    } else {
+      if (index == 0) {
+        // This happens when user selects an image or a horizontal rule
+        if (childIndex < children.length) {
+          // Select next text node
+          index += 1;
+        }
+      }
+
+      index -= 1;
+    }
   }
+
+  // Selection is not on text
+  return undefined;
 }
 
 
 function cursorToAbsolutePosition(_pmRootNode: Node, cursor: Cursor, doc: LoroDocType, mapping: LoroNodeMapping): [number, Cursor | undefined] {
   const containerId = cursor.containerId()
-  let index = 0;
+  let index = -1;
   let targetChildId: ContainerID;
   let loroNode: LoroNode | undefined;
   let update: Cursor | undefined;
@@ -235,11 +249,10 @@ function cursorToAbsolutePosition(_pmRootNode: Node, cursor: Cursor, doc: LoroDo
     const loroText = doc.getText(containerId);
     const pos = doc.getCursorPos(cursor);
     update = pos.update;
-    index = pos.offset;
+    index += pos.offset;
     targetChildId = loroText.id;
     loroNode = loroText.parent()?.parent() as LoroNode | undefined;
   }
-  // console.log("found offset", index);
   while (loroNode != null) {
     const children = loroNode.get(CHILDREN_KEY);
     if (children instanceof LoroList) {
@@ -265,12 +278,12 @@ function cursorToAbsolutePosition(_pmRootNode: Node, cursor: Cursor, doc: LoroDo
 
       targetChildId = loroNode.id;
       loroNode = loroNode.parent()?.parent() as LoroNode | undefined;
+      index += 1;
     } else {
       throw new Error("Unreachable code");
     }
   }
 
-  // console.log("parsed index", index)
-  return [index + 1, update];
+  return [index, update];
 }
 
