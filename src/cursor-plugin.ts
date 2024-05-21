@@ -271,7 +271,7 @@ function cursorToAbsolutePosition(_pmRootNode: Node, cursor: Cursor, doc: LoroDo
           if (mapped != null) {
             index += mapped.nodeSize;
           } else {
-            console.error(childIds, children.toJson())
+            console.error(childIds, children.toJSON())
           }
         }
       }
