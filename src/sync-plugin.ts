@@ -34,11 +34,11 @@ type PluginTransactionType =
   };
 
 export interface LoroSyncPluginProps {
-  doc: Loro;
+  doc: LoroDocType;
   mapping?: LoroNodeMapping;
 }
 
-interface LoroSyncPluginState extends LoroSyncPluginProps {
+export interface LoroSyncPluginState extends LoroSyncPluginProps {
   changedBy: "local" | "import" | "checkout";
   mapping: LoroNodeMapping;
   snapshot?: Loro | null;

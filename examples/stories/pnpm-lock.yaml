@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   loro-crdt:
-    specifier: ^0.16.1
-    version: 0.16.1
+    specifier: ^0.16.2
+    version: 0.16.2
   loro-prosemirror:
     specifier: link:../..
     version: link:../..
@@ -5689,14 +5689,14 @@ packages:
     dependencies:
       js-tokens: 4.0.0
 
-  /loro-crdt@0.16.1:
-    resolution: {integrity: sha512-miNru12ZUIznAJyzIT7LPxlM11b2BQkTC5/9/YWiaYskLZTL2ANzxdN0g36Peh/O6L0QFW+8I/c1LutW1kxFpg==}
+  /loro-crdt@0.16.2:
+    resolution: {integrity: sha512-+iS6GdKk+ethW98S2jX0Sp475cXKiSG+c6zXvjaGfycSHnQSGiof/gM1NOQ96QyNHXoA0DyCukhpLSNbRe9fLA==}
     dependencies:
-      loro-wasm: 0.16.1
+      loro-wasm: 0.16.2
     dev: false
 
-  /loro-wasm@0.16.1:
-    resolution: {integrity: sha512-JkbQk51zZvZbE5ENTLKVjcDZ4a4TmbwTWjIDvDMX66Kbj/K63arBsZKKldDEvnY8XNRVBuUi2zSh07tJAV3c1w==}
+  /loro-wasm@0.16.2:
+    resolution: {integrity: sha512-8SJuGCGXl69/1TDF6cjERBHsh+NzAATVRFklMGN6M5bq45MH8iO1Npy9KsgarRfOugvlnYNiVhQEYunJenLGxQ==}
     dev: false
 
   /loupe@2.3.7:
