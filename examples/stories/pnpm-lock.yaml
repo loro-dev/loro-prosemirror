@@ -6,14 +6,23 @@ settings:
 
 dependencies:
   loro-crdt:
-    specifier: ^0.15.0
-    version: 0.15.0
+    specifier: ^0.16.2
+    version: 0.16.2
   loro-prosemirror:
     specifier: link:../..
     version: link:../..
+  prosemirror-commands:
+    specifier: ^1.5.2
+    version: 1.5.2
   prosemirror-example-setup:
     specifier: ^1.2.2
     version: 1.2.2
+  prosemirror-keymap:
+    specifier: ^1.2.2
+    version: 1.2.2
+  prosemirror-menu:
+    specifier: ^1.2.4
+    version: 1.2.4
   prosemirror-model:
     specifier: ^1.20.0
     version: 1.20.0
@@ -5680,14 +5689,14 @@ packages:
     dependencies:
       js-tokens: 4.0.0
 
-  /loro-crdt@0.15.0:
-    resolution: {integrity: sha512-fRDXQYAtrGbRKuhHcLigZItkov5veGptbObE0XkD3cUinrBlIQ60ENO9g9yd9OhowaZ16+15wEseIEyTorjX6g==}
+  /loro-crdt@0.16.2:
+    resolution: {integrity: sha512-+iS6GdKk+ethW98S2jX0Sp475cXKiSG+c6zXvjaGfycSHnQSGiof/gM1NOQ96QyNHXoA0DyCukhpLSNbRe9fLA==}
     dependencies:
-      loro-wasm: 0.15.0
+      loro-wasm: 0.16.2
     dev: false
 
-  /loro-wasm@0.15.0:
-    resolution: {integrity: sha512-BYVs3z/zs7fW2BXTwHPbVxitJ2l/EdCheT4MhH2ZQGCmi7SKHUoUZ5svW0sksuVmS9potDRcXAgtVvNtfWvCSw==}
+  /loro-wasm@0.16.2:
+    resolution: {integrity: sha512-8SJuGCGXl69/1TDF6cjERBHsh+NzAATVRFklMGN6M5bq45MH8iO1Npy9KsgarRfOugvlnYNiVhQEYunJenLGxQ==}
     dev: false
 
   /loupe@2.3.7:

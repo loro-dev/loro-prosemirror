@@ -199,7 +199,7 @@ describe("updateDoc", () => {
     const loroDoc: LoroDocType = new Loro();
     const mapping: LoroNodeMapping = new Map();
     updateLoroOnPmChange(loroDoc, mapping, editorState, editorState);
-    expect(loroDoc.toJson()).toEqual(exampleLoroContent);
+    expect(loroDoc.toJSON()).toEqual(exampleLoroContent);
   });
 
   test("doc syncs changes correctly", () => {
@@ -213,7 +213,7 @@ describe("updateDoc", () => {
     let editorState = createEditorState(schema, pmContent);
 
     updateLoroOnPmChange(loroDoc, mapping, editorState, editorState);
-    expect(loroDoc.toJson()).toEqual({
+    expect(loroDoc.toJSON()).toEqual({
       [ROOT_DOC_KEY]: {
         nodeName: ROOT_DOC_KEY,
         attributes: {},
@@ -229,7 +229,7 @@ describe("updateDoc", () => {
     editorState = createEditorState(schema, pmContent);
 
     updateLoroOnPmChange(loroDoc, mapping, editorState, editorState);
-    expect(loroDoc.toJson()).toEqual({
+    expect(loroDoc.toJSON()).toEqual({
       [ROOT_DOC_KEY]: {
         nodeName: ROOT_DOC_KEY,
         attributes: {},
@@ -251,7 +251,7 @@ describe("updateDoc", () => {
     editorState = createEditorState(schema, pmContent);
 
     updateLoroOnPmChange(loroDoc, mapping, editorState, editorState);
-    expect(loroDoc.toJson()).toEqual({
+    expect(loroDoc.toJSON()).toEqual({
       [ROOT_DOC_KEY]: {
         nodeName: ROOT_DOC_KEY,
         attributes: {},
@@ -288,7 +288,7 @@ describe("updateDoc", () => {
     editorState = createEditorState(schema, pmContent);
 
     updateLoroOnPmChange(loroDoc, mapping, editorState, editorState);
-    expect(loroDoc.toJson()).toEqual({
+    expect(loroDoc.toJSON()).toEqual({
       [ROOT_DOC_KEY]: {
         nodeName: ROOT_DOC_KEY,
         attributes: {},
@@ -344,7 +344,7 @@ describe("updateDoc", () => {
     editorState = createEditorState(schema, pmContent);
 
     updateLoroOnPmChange(loroDoc, mapping, editorState, editorState);
-    expect(loroDoc.toJson()).toEqual({
+    expect(loroDoc.toJSON()).toEqual({
       [ROOT_DOC_KEY]: {
         nodeName: ROOT_DOC_KEY,
         attributes: {},

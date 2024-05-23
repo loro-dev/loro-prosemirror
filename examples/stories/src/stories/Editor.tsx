@@ -1,5 +1,6 @@
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
+import { keymap } from "prosemirror-keymap";
 import { DOMParser, Schema } from "prosemirror-model";
 import { schema } from "prosemirror-schema-basic";
 import { addListNodes } from "prosemirror-schema-list";
@@ -9,9 +10,13 @@ import {
   CursorAwareness,
   LoroCursorPlugin,
   LoroSyncPlugin,
+  LoroUndoPlugin,
+  undo,
+  redo,
 } from "loro-prosemirror";
 import "./Editor.css";
 import { Loro } from "loro-crdt";
+import { buildMenuItems } from "./menu";
 
 const mySchema = new Schema({
   nodes: addListNodes(schema.spec.nodes, "paragraph block*", "block"),
@@ -20,7 +25,8 @@ const mySchema = new Schema({
 
 const doc = DOMParser.fromSchema(mySchema).parse(document.createElement("div"));
 
-const plugins = exampleSetup({ schema: mySchema });
+/* eslint-disable */
+const plugins = exampleSetup({ schema: mySchema, history: false, menuContent: buildMenuItems(mySchema).fullMenu as any });
 
 export function Editor({
   loro,
@@ -47,7 +53,16 @@ export function Editor({
       onCreateLoro?.(loroRef.current);
     }
 
-    const all = [...plugins, LoroSyncPlugin({ doc: loroRef.current! })];
+    const all = [
+      ...plugins,
+      LoroSyncPlugin({ doc: loroRef.current! }),
+      LoroUndoPlugin({ doc: loroRef.current! }),
+      keymap({
+        "Mod-z": state => undo(state, () => {}),
+        "Mod-y": state => redo(state, () => {}),
+        "Mod-Shift-z": state => redo(state, () => {}),
+      }),
+    ];
     if (awareness) {
       all.push(LoroCursorPlugin(awareness, {}));
     }
@@ -56,5 +71,7 @@ export function Editor({
     });
   }, [awareness, onCreateLoro]);
 
-  return <div id="editor" style={{ minHeight: 200, margin: 16 }} ref={editorDom} />;
+  return (
+    <div id="editor" style={{ minHeight: 200, margin: 16 }} ref={editorDom} />
+  );
 }

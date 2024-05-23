@@ -71,12 +71,19 @@ export function updateLoroOnPmChange(
   const node = newEditorState.doc;
   const map = doc.getMap(ROOT_DOC_KEY);
 
+  let isInit = false;
   if (map.get("nodeName") == null) {
+    doc.commit()
+    isInit = true;
     map.set("nodeName", node.type.name);
   }
 
   updateLoroMap(map, node, mapping);
-  doc.commit("loroSyncPlugin");
+  if (isInit) {
+    doc.commit("sys:init")
+  } else {
+    doc.commit("loroSyncPlugin");
+  }
 }
 
 export function createNodeFromLoroObj(
@@ -114,7 +121,7 @@ export function createNodeFromLoroObj(
       .filter((n) => n !== null);
 
     try {
-      retval = schema.node(nodeName, attributes.toJson(), mappedChildren);
+      retval = schema.node(nodeName, attributes.toJSON(), mappedChildren);
       WEAK_NODE_TO_LORO_CONTAINER_MAPPING.set(retval, obj.id);
     } catch (e) {
       // An error occurred while creating the node.
@@ -266,7 +273,7 @@ function eqLoroObjNode(
     const normalizedContent = normalizeNodeContent(node);
     return (
       loroChildren.length === normalizedContent.length &&
-      eqAttrs(getLoroMapAttributes(obj).toJson(), node.attrs) &&
+      eqAttrs(getLoroMapAttributes(obj).toJSON(), node.attrs) &&
       normalizedContent.every((childNode, i) =>
         eqLoroObjNode(loroChildren.get(i)!, childNode),
       )

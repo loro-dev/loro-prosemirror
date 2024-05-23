@@ -1,5 +1,5 @@
 
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta } from '@storybook/react';
 
 import { Editor } from './Editor';
 import { Loro } from 'loro-crdt';
@@ -16,9 +16,16 @@ const meta = {
 } satisfies Meta<typeof Editor>;
 
 export default meta;
-type Story = StoryObj<typeof meta>;
 
-export const Basic: Story = {};
+export const Basic = () => {
+  const loroARef = useRef<Loro>(createLoro());
+  const idA = loroARef.current.peerIdStr;
+  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
+  return <div>
+    <Editor loro={loroARef.current} awareness={awarenessA.current} />
+  </div>
+
+};
 
 function createLoro() {
   const doc = new Loro();

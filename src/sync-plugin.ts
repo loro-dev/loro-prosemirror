@@ -34,11 +34,11 @@ type PluginTransactionType =
   };
 
 export interface LoroSyncPluginProps {
-  doc: Loro;
+  doc: LoroDocType;
   mapping?: LoroNodeMapping;
 }
 
-interface LoroSyncPluginState extends LoroSyncPluginProps {
+export interface LoroSyncPluginState extends LoroSyncPluginProps {
   changedBy: "local" | "import" | "checkout";
   mapping: LoroNodeMapping;
   snapshot?: Loro | null;
@@ -76,6 +76,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
             break;
           case "update-state":
             state = { ...state, ...meta.state };
+            state.doc.commit("sys:init");
             break;
           default:
             break;
@@ -146,7 +147,7 @@ function init(view: EditorView) {
 function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
   const state = loroSyncPluginKey.getState(view.state) as LoroSyncPluginState;
   state.changedBy = event.by;
-  if (event.by === "local") {
+  if (event.by === "local" && event.origin !== "undo") {
     return;
   }
 
