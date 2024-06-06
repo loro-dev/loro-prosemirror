@@ -14,10 +14,10 @@
   "author": "Loro Team",
   "license": "MIT",
   "dependencies": {
-    "lib0": "^0.2.42",
-    "loro-crdt": "^0.16.3"
+    "lib0": "^0.2.42"
   },
   "peerDependencies": {
+    "loro-crdt": "^0.16.4",
     "prosemirror-model": "^1.18.1",
     "prosemirror-state": "^1.4.1",
     "prosemirror-view": "^1.28.0"
