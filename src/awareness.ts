@@ -1,4 +1,5 @@
-import { Awareness, Cursor, PeerID } from "loro-crdt";
+import { Awareness, Cursor } from "loro-crdt";
+import type { PeerID } from "loro-crdt";
 
 export class CursorAwareness extends Awareness<{
   anchor: Uint8Array | null;

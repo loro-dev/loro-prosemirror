@@ -1,0 +1,40 @@
+# Node modules and logs
+node_modules/
+examples/
+npm-debug.log
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Optional npm cache & logs
+.npm/
+.npmrc
+logs/
+*.log
+*.log.*
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Editor directories and files
+.idea/
+.vscode/
+*.sublime-workspace
+
+# Build artifacts
+/build/
+/coverage/
+
+
+# End Generation Here

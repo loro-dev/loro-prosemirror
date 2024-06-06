@@ -1,4 +1,5 @@
-import { Cursor, Loro, UndoManager } from "loro-crdt";
+import type { Cursor } from "loro-crdt";
+import { Loro, UndoManager } from "loro-crdt";
 import {
   EditorState,
   Plugin,

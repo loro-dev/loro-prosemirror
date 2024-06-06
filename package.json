@@ -1,17 +1,24 @@
 {
   "name": "loro-prosemirror",
-  "version": "1.0.0",
-  "description": "",
-  "type": "module",
-  "main": "index.js",
+  "version": "0.0.3",
+  "description": "Prosemirror Binding for Loro",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "typings": "dist/loro.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "rollup -c",
     "test": "vitest run",
     "coverage": "vitest run --coverage"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "rich-text",
+    "prosemirror",
+    "loro",
+    "local-first",
+    "crdt"
+  ],
+  "author": "Loro Team",
+  "license": "MIT",
   "dependencies": {
     "lib0": "^0.2.42",
     "loro-crdt": "^0.16.3"
@@ -22,6 +29,7 @@
     "prosemirror-view": "^1.28.0"
   },
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.0.1",
     "@typescript-eslint/parser": "^7.4.0",
     "@vitest/coverage-v8": "^1.4.0",
     "eslint": "^8.57.0",
@@ -30,6 +38,9 @@
     "prosemirror-model": "^1.18.1",
     "prosemirror-state": "^1.4.1",
     "prosemirror-view": "^1.26.2",
+    "rollup": "^3.29.4",
+    "rollup-plugin-dts": "^5.3.1",
+    "rollup-plugin-esbuild": "^5.0.0",
     "typescript": "^5.4.3",
     "vite": "^5.2.7",
     "vitest": "^1.4.0"

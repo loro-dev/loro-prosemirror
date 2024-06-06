@@ -1,8 +1,8 @@
 import { simpleDiff } from "lib0/diff";
 import { equalityDeep } from "lib0/function";
 
+import type { ContainerID } from 'loro-crdt';
 import {
-  ContainerID,
   Delta,
   Loro,
   LoroEventBatch,

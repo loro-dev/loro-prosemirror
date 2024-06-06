@@ -1,19 +1,15 @@
-import { Loro, LoroEventBatch, LoroList, LoroMap, LoroText } from "loro-crdt";
+import { Loro, LoroEventBatch } from "loro-crdt";
 import {
   Plugin,
   PluginKey,
-  TextSelection,
   StateField,
   EditorState,
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Slice, Fragment } from "prosemirror-model";
 import {
-  ATTRIBUTES_KEY,
-  CHILDREN_KEY,
   LoroDocType,
   LoroNodeMapping,
-  ROOT_DOC_KEY,
   clearChangedNodes,
   createNodeFromLoroObj,
   updateLoroOnPmChange,
