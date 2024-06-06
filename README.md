@@ -33,4 +33,7 @@ const editor = new EditorView(editorDom, {
 });
 ```
 
+https://github.com/loro-dev/prosemirror/assets/18425020/d0f01760-b76c-43b5-b7f7-b0b224130d9d
+
+
 
