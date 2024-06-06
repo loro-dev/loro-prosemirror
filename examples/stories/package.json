@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "loro-crdt": "^0.16.3",
-    "loro-prosemirror": "link:../..",
+    "loro-prosemirror": "0.0.3",
     "prosemirror-commands": "^1.5.2",
     "prosemirror-example-setup": "^1.2.2",
     "prosemirror-keymap": "^1.2.2",

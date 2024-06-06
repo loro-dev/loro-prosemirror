@@ -3,6 +3,7 @@
 - Sync document state with Loro
 - Sync cursors with Loro's Awareness and [Cursor](https://loro.dev/docs/tutorial/cursor)
 - Undo/Redo in collaborative editing
+- [🎨 Try it online](https://6661e86e215da40180d90507-ansgznbrmy.chromatic.com)
 
 ```ts
 import {
@@ -22,9 +23,9 @@ const plugins = [
   LoroSyncPlugin({ doc }),
   LoroUndoPlugin({ doc }),
   keymap({
-    "Mod-z": state => undo(state, () => {}),
-    "Mod-y": state => redo(state, () => {}),
-    "Mod-Shift-z": state => redo(state, () => {}),
+    "Mod-z": (state) => undo(state, () => {}),
+    "Mod-y": (state) => redo(state, () => {}),
+    "Mod-Shift-z": (state) => redo(state, () => {}),
   }),
   LoroCursorPlugin(awareness, {}),
 ];
@@ -34,6 +35,3 @@ const editor = new EditorView(editorDom, {
 ```
 
 https://github.com/loro-dev/prosemirror/assets/18425020/d0f01760-b76c-43b5-b7f7-b0b224130d9d
-
-
-

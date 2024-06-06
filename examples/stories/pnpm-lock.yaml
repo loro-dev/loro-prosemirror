@@ -6,11 +6,11 @@ settings:
 
 dependencies:
   loro-crdt:
-    specifier: ^0.16.2
-    version: 0.16.2
+    specifier: ^0.16.3
+    version: 0.16.3
   loro-prosemirror:
-    specifier: link:../..
-    version: link:../..
+    specifier: 0.0.3
+    version: 0.0.3(prosemirror-model@1.20.0)(prosemirror-state@1.4.3)(prosemirror-view@1.33.4)
   prosemirror-commands:
     specifier: ^1.5.2
     version: 1.5.2
@@ -5479,6 +5479,10 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /isomorphic.js@0.2.5:
+    resolution: {integrity: sha512-PIeMbHqMt4DnUP3MA/Flc0HElYjMXArsw1qwJZcm9sqR8mq3l8NYizFMty0pWwE/tzIGH3EKK5+jes5mAr85yw==}
+    dev: false
+
   /jackspeak@2.3.6:
     resolution: {integrity: sha512-N3yCS/NegsOBokc8GAdM8UcmfsKiSS8cipheD/nivzr700H+nsMOxJjQnvwOcRYVuFkdH0wGUvW2WbXGmrZGbQ==}
     engines: {node: '>=14'}
@@ -5627,6 +5631,14 @@ packages:
       type-check: 0.4.0
     dev: true
 
+  /lib0@0.2.94:
+    resolution: {integrity: sha512-hZ3p54jL4Wpu7IOg26uC7dnEWiMyNlUrb9KoG7+xYs45WkQwpVvKFndVq2+pqLYKe1u8Fp3+zAfZHVvTK34PvQ==}
+    engines: {node: '>=16'}
+    hasBin: true
+    dependencies:
+      isomorphic.js: 0.2.5
+    dev: false
+
   /lilconfig@2.1.0:
     resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}
     engines: {node: '>=10'}
@@ -5689,14 +5701,28 @@ packages:
     dependencies:
       js-tokens: 4.0.0
 
-  /loro-crdt@0.16.2:
-    resolution: {integrity: sha512-+iS6GdKk+ethW98S2jX0Sp475cXKiSG+c6zXvjaGfycSHnQSGiof/gM1NOQ96QyNHXoA0DyCukhpLSNbRe9fLA==}
+  /loro-crdt@0.16.3:
+    resolution: {integrity: sha512-+iwDK7aV0Sa5ZlErdU3F4wh4nW3jNfa1cBcVuKna7UPdaNp/hohKRuGPTCf6ynhkmZvzwKpg7ZzibETxxKoczA==}
     dependencies:
-      loro-wasm: 0.16.2
+      loro-wasm: 0.16.3
     dev: false
 
-  /loro-wasm@0.16.2:
-    resolution: {integrity: sha512-8SJuGCGXl69/1TDF6cjERBHsh+NzAATVRFklMGN6M5bq45MH8iO1Npy9KsgarRfOugvlnYNiVhQEYunJenLGxQ==}
+  /loro-prosemirror@0.0.3(prosemirror-model@1.20.0)(prosemirror-state@1.4.3)(prosemirror-view@1.33.4):
+    resolution: {integrity: sha512-Nlet+shWOSPisVykyj9uFPpDGV6VODYT4zq/Debzja/kotpD7TCkdNAJshOGazE8qso3Y+RH4cAIcikHvM9R5Q==}
+    peerDependencies:
+      prosemirror-model: ^1.18.1
+      prosemirror-state: ^1.4.1
+      prosemirror-view: ^1.28.0
+    dependencies:
+      lib0: 0.2.94
+      loro-crdt: 0.16.3
+      prosemirror-model: 1.20.0
+      prosemirror-state: 1.4.3
+      prosemirror-view: 1.33.4
+    dev: false
+
+  /loro-wasm@0.16.3:
+    resolution: {integrity: sha512-ftJnoAVImVGCxwDWkgOU00tWAunqqc9abWtXC/cRCx8wzqMwrEnBMls/0N6HTuUNSzweTR77Izt7y/i7dccLgg==}
     dev: false
 
   /loupe@2.3.7:
