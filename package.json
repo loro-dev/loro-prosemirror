@@ -1,6 +1,6 @@
 {
   "name": "loro-prosemirror",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Prosemirror Binding for Loro",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -10,13 +10,7 @@
     "test": "vitest run",
     "coverage": "vitest run --coverage"
   },
-  "keywords": [
-    "rich-text",
-    "prosemirror",
-    "loro",
-    "local-first",
-    "crdt"
-  ],
+  "keywords": ["rich-text", "prosemirror", "loro", "local-first", "crdt"],
   "author": "Loro Team",
   "license": "MIT",
   "dependencies": {
