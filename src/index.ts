@@ -7,7 +7,7 @@ export {
 export type { LoroDocType } from "./lib";
 export {
   createNodeFromLoroObj,
-  updateLoroOnPmChange,
+  updateLoroToPmState,
   ROOT_DOC_KEY,
   NODE_NAME_KEY,
   CHILDREN_KEY,

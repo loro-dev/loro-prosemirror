@@ -12,7 +12,7 @@ import {
   LoroNodeMapping,
   clearChangedNodes,
   createNodeFromLoroObj,
-  updateLoroOnPmChange,
+  updateLoroToPmState,
 } from "./lib";
 
 export const loroSyncPluginKey = new PluginKey<LoroSyncPluginState>("loro-sync");
@@ -68,7 +68,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
         }
         switch (meta?.type) {
           case "doc-changed":
-            updateLoroOnPmChange(state.doc as LoroDocType, state.mapping, oldEditorState, newEditorState);
+            updateLoroToPmState(state.doc as LoroDocType, state.mapping, oldEditorState, newEditorState);
             break;
           case "update-state":
             state = { ...state, ...meta.state };

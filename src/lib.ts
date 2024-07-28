@@ -62,13 +62,12 @@ export const NODE_NAME_KEY = "nodeName";
  */
 export const WEAK_NODE_TO_LORO_CONTAINER_MAPPING = new WeakMap<Node, ContainerID>();
 
-export function updateLoroOnPmChange(
+export function updateLoroToPmState(
   doc: LoroDocType,
   mapping: LoroNodeMapping,
-  oldEditorState: EditorState,
-  newEditorState: EditorState,
+  editorState: EditorState,
 ) {
-  const node = newEditorState.doc;
+  const node = editorState.doc;
   const map = doc.getMap(ROOT_DOC_KEY);
 
   let isInit = false;
