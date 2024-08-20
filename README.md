@@ -23,9 +23,9 @@ const plugins = [
   LoroSyncPlugin({ doc }),
   LoroUndoPlugin({ doc }),
   keymap({
-    "Mod-z": (state) => undo(state, () => {}),
-    "Mod-y": (state) => redo(state, () => {}),
-    "Mod-Shift-z": (state) => redo(state, () => {}),
+    "Mod-z": undo,
+    "Mod-y": redo,
+    "Mod-Shift-z": redo,
   }),
   LoroCursorPlugin(awareness, {}),
 ];

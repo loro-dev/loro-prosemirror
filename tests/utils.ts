@@ -1,8 +1,8 @@
 import { Schema } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
 import {
-  LoroNode,
-  LoroNodeMapping,
+  type LoroNode,
+  type LoroNodeMapping,
   getLoroMapAttributes,
   getLoroMapChildren,
 } from "../src/lib";

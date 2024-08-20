@@ -4,10 +4,11 @@
   "description": "Prosemirror Binding for Loro",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
-  "typings": "dist/loro.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "rollup -c",
     "test": "vitest run",
+    "lint": "tsc --noEmit",
     "coverage": "vitest run --coverage"
   },
   "keywords": [
