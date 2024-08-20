@@ -8,6 +8,7 @@
   "scripts": {
     "build": "rollup -c",
     "test": "vitest run",
+    "lint": "tsc --noEmit",
     "coverage": "vitest run --coverage"
   },
   "keywords": [

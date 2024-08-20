@@ -41,8 +41,10 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+      - name: Lint
+        run: pnpm run lint
       - name: Test
-        run: pnpm coverage
+        run: pnpm run coverage
       - name: 'Report Coverage'
         if: always()
         uses: davelosert/vitest-coverage-report-action@v2
