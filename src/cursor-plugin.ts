@@ -1,9 +1,9 @@
-import { Awareness, Container, ContainerID, Cursor, Loro, LoroList, LoroText, PeerID } from "loro-crdt";
+import { Awareness, type Container, type ContainerID, Cursor, Loro, LoroList, LoroText, type PeerID } from "loro-crdt";
 import { EditorState, Plugin, PluginKey, Selection } from "prosemirror-state";
-import { Decoration, DecorationAttrs, DecorationSet } from "prosemirror-view";
-import { LoroSyncPluginState, loroSyncPluginKey } from "./sync-plugin";
+import { Decoration, type DecorationAttrs, DecorationSet } from "prosemirror-view";
+import { type LoroSyncPluginState, loroSyncPluginKey } from "./sync-plugin";
 import { Node } from "prosemirror-model";
-import { CHILDREN_KEY, LoroDocType, LoroNode, LoroNodeMapping, WEAK_NODE_TO_LORO_CONTAINER_MAPPING } from "./lib";
+import { CHILDREN_KEY, type LoroDocType, type LoroNode, type LoroNodeMapping, WEAK_NODE_TO_LORO_CONTAINER_MAPPING } from "./lib";
 import { CursorAwareness, cursorEq } from "./awareness";
 
 const loroCursorPluginKey = new PluginKey<{ awarenessUpdated: boolean }>(

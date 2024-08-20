@@ -1,11 +1,11 @@
 import type { Cursor } from "loro-crdt";
 import { Loro, UndoManager } from "loro-crdt";
 import {
-  Command,
+  type Command,
   EditorState,
   Plugin,
   PluginKey,
-  StateField,
+  type StateField,
   TextSelection,
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";

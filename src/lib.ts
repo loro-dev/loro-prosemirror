@@ -3,18 +3,18 @@ import { equalityDeep } from "lib0/function";
 
 import type { ContainerID } from 'loro-crdt';
 import {
-  Delta,
+  type Delta,
   Loro,
-  LoroEventBatch,
+  type LoroEventBatch,
   LoroList,
   LoroMap,
   LoroText,
   LoroTree,
-  Value,
+  type Value,
   isContainer,
 } from "loro-crdt";
 import { EditorState } from "prosemirror-state";
-import { Attrs, Mark, Node, Schema } from "prosemirror-model";
+import { type Attrs, Mark, Node, Schema } from "prosemirror-model";
 
 type LoroChildrenListType = LoroList<LoroMap<LoroNodeContainerType> | LoroText>;
 type LoroNodeContainerType = {

@@ -1,12 +1,12 @@
 import { describe, assert, expect, test } from "vitest";
 
-import { Node, Schema, NodeSpec, MarkSpec } from "prosemirror-model";
+import { Node, Schema, type NodeSpec, type MarkSpec } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
 import { Loro, LoroText } from "loro-crdt";
 
 import {
-  LoroDocType,
-  LoroNodeMapping,
+  type LoroDocType,
+  type LoroNodeMapping,
   ROOT_DOC_KEY,
   clearChangedNodes,
   createNodeFromLoroObj,
@@ -198,7 +198,7 @@ describe("updateDoc", () => {
     const editorState = createEditorState(schema, examplePmContent.doc);
     const loroDoc: LoroDocType = new Loro();
     const mapping: LoroNodeMapping = new Map();
-    updateLoroToPmState(loroDoc, mapping, editorState, editorState);
+    updateLoroToPmState(loroDoc, mapping, editorState);
     expect(loroDoc.toJSON()).toEqual(exampleLoroContent);
   });
 
@@ -212,7 +212,7 @@ describe("updateDoc", () => {
     pmContent["content"] = [];
     let editorState = createEditorState(schema, pmContent);
 
-    updateLoroToPmState(loroDoc, mapping, editorState, editorState);
+    updateLoroToPmState(loroDoc, mapping, editorState);
     expect(loroDoc.toJSON()).toEqual({
       [ROOT_DOC_KEY]: {
         nodeName: ROOT_DOC_KEY,
@@ -228,7 +228,7 @@ describe("updateDoc", () => {
     });
     editorState = createEditorState(schema, pmContent);
 
-    updateLoroToPmState(loroDoc, mapping, editorState, editorState);
+    updateLoroToPmState(loroDoc, mapping, editorState);
     expect(loroDoc.toJSON()).toEqual({
       [ROOT_DOC_KEY]: {
         nodeName: ROOT_DOC_KEY,
@@ -250,7 +250,7 @@ describe("updateDoc", () => {
     });
     editorState = createEditorState(schema, pmContent);
 
-    updateLoroToPmState(loroDoc, mapping, editorState, editorState);
+    updateLoroToPmState(loroDoc, mapping, editorState);
     expect(loroDoc.toJSON()).toEqual({
       [ROOT_DOC_KEY]: {
         nodeName: ROOT_DOC_KEY,
@@ -287,7 +287,7 @@ describe("updateDoc", () => {
     });
     editorState = createEditorState(schema, pmContent);
 
-    updateLoroToPmState(loroDoc, mapping, editorState, editorState);
+    updateLoroToPmState(loroDoc, mapping, editorState);
     expect(loroDoc.toJSON()).toEqual({
       [ROOT_DOC_KEY]: {
         nodeName: ROOT_DOC_KEY,
@@ -343,7 +343,7 @@ describe("updateDoc", () => {
     });
     editorState = createEditorState(schema, pmContent);
 
-    updateLoroToPmState(loroDoc, mapping, editorState, editorState);
+    updateLoroToPmState(loroDoc, mapping, editorState);
     expect(loroDoc.toJSON()).toEqual({
       [ROOT_DOC_KEY]: {
         nodeName: ROOT_DOC_KEY,
@@ -395,7 +395,7 @@ describe("createNodeFromLoroObj", () => {
     const _editorState = createEditorState(schema, examplePmContent.doc);
     const loroDoc: LoroDocType = new Loro();
     const mapping: LoroNodeMapping = new Map();
-    updateLoroToPmState(loroDoc, mapping, _editorState, _editorState);
+    updateLoroToPmState(loroDoc, mapping, _editorState);
 
     const node = createNodeFromLoroObj(
       schema,

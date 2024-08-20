@@ -1,4 +1,4 @@
-import { Schema, NodeSpec, MarkSpec } from "prosemirror-model";
+import { Schema, type NodeSpec, type MarkSpec } from "prosemirror-model";
 
 const nodes: { [key: string]: NodeSpec } = {
   doc: {

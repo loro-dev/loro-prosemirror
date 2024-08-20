@@ -1,15 +1,15 @@
-import { Loro, LoroEventBatch } from "loro-crdt";
+import { Loro, type LoroEventBatch } from "loro-crdt";
 import {
   Plugin,
   PluginKey,
-  StateField,
+  type StateField,
   EditorState,
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Slice, Fragment } from "prosemirror-model";
 import {
-  LoroDocType,
-  LoroNodeMapping,
+  type LoroDocType,
+  type LoroNodeMapping,
   clearChangedNodes,
   createNodeFromLoroObj,
   updateLoroToPmState,
@@ -68,7 +68,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
         }
         switch (meta?.type) {
           case "doc-changed":
-            updateLoroToPmState(state.doc as LoroDocType, state.mapping, oldEditorState, newEditorState);
+            updateLoroToPmState(state.doc as LoroDocType, state.mapping, oldEditorState);
             break;
           case "update-state":
             state = { ...state, ...meta.state };
