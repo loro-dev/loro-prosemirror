@@ -1,15 +1,17 @@
-import type { Schema } from "prosemirror-model";
-import mapValues from "just-map-values";
 import type { Loro } from "loro-crdt";
+import type { Schema } from "prosemirror-model";
 
 const LORO_TEXT_STYLE_CACHE = new WeakSet<Loro>();
 
 function getLoroTextStyle(schema: Schema): {
   [mark: string]: { expand: "before" | "after" | "none" | "both" };
 } {
-  return mapValues(schema.marks, (mark) => {
-    return { expand: mark.spec.inclusive ? "after" : "none" };
-  });
+  return Object.fromEntries(
+    Object.entries(schema.marks).map(([markName, markType]) => [
+      markName,
+      { expand: markType.spec.inclusive ? "after" : "none" },
+    ])
+  );
 }
 
 export function configLoroTextStyle(doc: Loro, schema: Schema) {
