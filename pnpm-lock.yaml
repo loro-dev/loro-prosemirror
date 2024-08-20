@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      just-map-values:
+        specifier: ^3.2.0
+        version: 3.2.0
       lib0:
         specifier: ^0.2.42
         version: 0.2.93
@@ -5294,6 +5297,10 @@ packages:
     optionalDependencies:
       graceful-fs: 4.2.11
     dev: true
+
+  /just-map-values@3.2.0:
+    resolution: {integrity: sha512-TyqCKtK3NxiUgOjRYMIKURvBTHesi3XzomDY0QVPZ3rYzLCF+nNq5rSi0B/L5aOd/WMTZo6ukzA4wih4HUbrDg==}
+    dev: false
 
   /keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
