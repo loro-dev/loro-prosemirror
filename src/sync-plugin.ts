@@ -68,7 +68,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
         }
         switch (meta?.type) {
           case "doc-changed":
-            updateLoroToPmState(state.doc as LoroDocType, state.mapping, oldEditorState);
+            updateLoroToPmState(state.doc as LoroDocType, state.mapping, newEditorState);
             break;
           case "update-state":
             state = { ...state, ...meta.state };
