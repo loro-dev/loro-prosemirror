@@ -14,6 +14,7 @@ import {
   createNodeFromLoroObj,
   updateLoroToPmState,
 } from "./lib";
+import { configLoroTextStyle } from "./text-style";
 
 export const loroSyncPluginKey = new PluginKey<LoroSyncPluginState>("loro-sync");
 
@@ -52,11 +53,15 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
       },
     },
     state: {
-      init: (config, editorState): LoroSyncPluginState => ({
-        doc: props.doc,
-        mapping: props.mapping ?? new Map(),
-        changedBy: "local"
-      }),
+      init: (config, editorState): LoroSyncPluginState => {
+        configLoroTextStyle(props.doc, editorState.schema);
+
+        return {
+          doc: props.doc,
+          mapping: props.mapping ?? new Map(),
+          changedBy: "local"
+        }
+      },
       apply: (tr, state, oldEditorState, newEditorState) => {
         const meta = tr.getMeta(
           loroSyncPluginKey,

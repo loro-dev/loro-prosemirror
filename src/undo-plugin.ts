@@ -14,6 +14,7 @@ import {
   cursorToAbsolutePosition,
 } from "./cursor-plugin";
 import { loroSyncPluginKey } from "./sync-plugin";
+import { configLoroTextStyle } from "./text-style";
 
 export interface LoroUndoPluginProps {
   doc: Loro;
@@ -41,6 +42,8 @@ export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
     key: loroUndoPluginKey,
     state: {
       init: (config, editorState): LoroUndoPluginState => {
+        configLoroTextStyle(props.doc, editorState.schema);
+
         undoManager.addExcludeOriginPrefix("sys:init");
         return {
           undoManager,

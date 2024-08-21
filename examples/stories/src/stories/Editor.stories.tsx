@@ -17,7 +17,7 @@ const meta = {
 export default meta;
 
 export const Basic = () => {
-  const loroARef = useRef<Loro>(createLoro());
+  const loroARef = useRef<Loro>(new Loro());
   const idA = loroARef.current.peerIdStr;
   const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
   return (
@@ -27,22 +27,11 @@ export const Basic = () => {
   );
 };
 
-function createLoro() {
-  const doc = new Loro();
-  doc.configTextStyle({
-    em: { expand: "after" },
-    strong: { expand: "after" },
-    code: { expand: "none" },
-    link: { expand: "none" },
-  });
-  return doc;
-}
-
 export const Sync = () => {
-  const loroARef = useRef<Loro>(createLoro());
+  const loroARef = useRef<Loro>(new Loro());
   const idA = loroARef.current.peerIdStr;
   const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
-  const loroBRef = useRef<Loro>(createLoro());
+  const loroBRef = useRef<Loro>(new Loro());
   const idB = loroBRef.current.peerIdStr;
   const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
   useEffect(() => {
