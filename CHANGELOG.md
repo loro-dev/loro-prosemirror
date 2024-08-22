@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.0.8](https://github.com/loro-dev/loro-prosemirror/compare/v0.0.7...v0.0.8) (2024-08-22)
+
+
+### Continuous Integration
+
+* add release workflow ([#14](https://github.com/loro-dev/loro-prosemirror/issues/14)) ([5437a33](https://github.com/loro-dev/loro-prosemirror/commit/5437a33752dd26e675a1928ebcaa9eabbc2de634))
+
 ### [0.0.7](https://github.com/loro-dev/prosemirror/compare/v0.0.6...v0.0.7) (2024-08-22)
 
 
