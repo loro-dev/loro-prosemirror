@@ -1,6 +1,7 @@
 # Node modules and logs
 node_modules/
 examples/
+.github/
 npm-debug.log
 
 # Environment files
