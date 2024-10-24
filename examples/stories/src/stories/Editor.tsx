@@ -13,9 +13,10 @@ import {
   LoroUndoPlugin,
   undo,
   redo,
+  LoroDocType,
 } from "loro-prosemirror";
 import "./Editor.css";
-import { Loro } from "loro-crdt";
+import { LoroDoc } from "loro-crdt";
 import { buildMenuItems } from "./menu";
 
 const mySchema = new Schema({
@@ -33,9 +34,9 @@ export function Editor({
   awareness,
   onCreateLoro,
 }: {
-  loro?: Loro;
+  loro?: LoroDocType;
   awareness?: CursorAwareness;
-  onCreateLoro?: (loro: Loro) => void;
+  onCreateLoro?: (loro: LoroDocType) => void;
 }) {
   const editorRef = useRef<null | EditorView>(null);
   const editorDom = useRef(null);
@@ -49,7 +50,7 @@ export function Editor({
   useEffect(() => {
     if (editorRef.current) return;
     if (!loroRef.current) {
-      loroRef.current = new Loro();
+      loroRef.current = new LoroDoc();
       onCreateLoro?.(loroRef.current);
     }
 

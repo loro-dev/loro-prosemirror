@@ -12,8 +12,8 @@ importers:
         specifier: ^0.2.42
         version: 0.2.93
       loro-crdt:
-        specifier: ^0.16.3
-        version: 0.16.3
+        specifier: ^1.0.7
+        version: 1.0.7
     devDependencies:
       '@rollup/plugin-node-resolve':
         specifier: ^15.0.1
@@ -64,8 +64,8 @@ importers:
   examples/stories:
     dependencies:
       loro-crdt:
-        specifier: ^0.16.3
-        version: 0.16.3
+        specifier: ^1.0.7
+        version: 1.0.7
       loro-prosemirror:
         specifier: '*'
         version: link:../..
@@ -4384,6 +4384,7 @@ packages:
   /eslint@8.57.0:
     resolution: {integrity: sha512-dZ6+mexnaTIbSBZWgou51U6OmzIhYM2VcNdtiTtI7qPNZm35Akpr0f6vtw3w1Kmn5PYo+tZVfh13WrhpS6oLqQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@8.57.0)
@@ -5402,14 +5403,14 @@ packages:
     dependencies:
       js-tokens: 4.0.0
 
-  /loro-crdt@0.16.3:
-    resolution: {integrity: sha512-+iwDK7aV0Sa5ZlErdU3F4wh4nW3jNfa1cBcVuKna7UPdaNp/hohKRuGPTCf6ynhkmZvzwKpg7ZzibETxxKoczA==}
+  /loro-crdt@1.0.7:
+    resolution: {integrity: sha512-BD9qx3dQdqhEegOTEYdYo2GvRoYAeZFAfwcJLDtNRKo20y/1dUsRmzAvtLzZI/cdcRg+DkpBBLr+wcL4jRYUNw==}
     dependencies:
-      loro-wasm: 0.16.3
+      loro-wasm: 1.0.7
     dev: false
 
-  /loro-wasm@0.16.3:
-    resolution: {integrity: sha512-ftJnoAVImVGCxwDWkgOU00tWAunqqc9abWtXC/cRCx8wzqMwrEnBMls/0N6HTuUNSzweTR77Izt7y/i7dccLgg==}
+  /loro-wasm@1.0.7:
+    resolution: {integrity: sha512-WFIpGGzc6I7zRMDoRGxa3AHhno7gVnOgwqcrTfmpKWOtktZQ7BvhIV4kYgsdyuIBcMSrQEJTfOY/80xQSjUKTw==}
     dev: false
 
   /loupe@2.3.7:

@@ -1,7 +1,7 @@
 import { simpleDiff } from "lib0/diff";
 import { equalityDeep } from "lib0/function";
 
-import type { ContainerID } from 'loro-crdt';
+import type { ContainerID, LoroDoc } from 'loro-crdt';
 import {
   type Delta,
   Loro,
@@ -23,7 +23,7 @@ type LoroNodeContainerType = {
   [NODE_NAME_KEY]: string
 }
 
-export type LoroDocType = Loro<{
+export type LoroDocType = LoroDoc<{
   doc: LoroMap<LoroNodeContainerType>
 }>;
 export type LoroNode = LoroMap<LoroNodeContainerType>
@@ -79,9 +79,9 @@ export function updateLoroToPmState(
 
   updateLoroMap(map, node, mapping);
   if (isInit) {
-    doc.commit("sys:init")
+    doc.commit({ origin: "sys:init" });
   } else {
-    doc.commit("loroSyncPlugin");
+    doc.commit({ origin: "loroSyncPlugin" });
   }
 }
 

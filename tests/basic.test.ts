@@ -1,18 +1,15 @@
-import { describe, assert, expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 
-import { Node, Schema, type NodeSpec, type MarkSpec } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
-import { Loro, LoroText } from "loro-crdt";
+import { LoroDoc, LoroText } from "loro-crdt";
 
 import {
-  type LoroDocType,
-  type LoroNodeMapping,
   ROOT_DOC_KEY,
   clearChangedNodes,
   createNodeFromLoroObj,
-  getLoroMapAttributes,
   getLoroMapChildren,
   updateLoroToPmState,
+  type LoroDocType,
+  type LoroNodeMapping,
 } from "../src/lib";
 
 import { schema } from "./schema";
@@ -20,8 +17,8 @@ import {
   createEditorState,
   insertLoroMap,
   insertLoroText,
-  setupLoroMap,
   oneMs,
+  setupLoroMap,
 } from "./utils";
 
 const examplePmContent = {
@@ -196,14 +193,14 @@ const exampleLoroContent = {
 describe("updateDoc", () => {
   test("empty doc gets populated correctly", () => {
     const editorState = createEditorState(schema, examplePmContent.doc);
-    const loroDoc: LoroDocType = new Loro();
+    const loroDoc: LoroDocType = new LoroDoc();
     const mapping: LoroNodeMapping = new Map();
     updateLoroToPmState(loroDoc, mapping, editorState);
     expect(loroDoc.toJSON()).toEqual(exampleLoroContent);
   });
 
   test("doc syncs changes correctly", () => {
-    const loroDoc: LoroDocType = new Loro();
+    const loroDoc: LoroDocType = new LoroDoc();
     const mapping: LoroNodeMapping = new Map();
 
     // First we create an empty content
@@ -393,21 +390,21 @@ describe("createNodeFromLoroObj", () => {
     // FIXME: Reusing the logic here to populate the loro doc as its
     // json representation doesn't contain text marks
     const _editorState = createEditorState(schema, examplePmContent.doc);
-    const loroDoc: LoroDocType = new Loro();
+    const loroDoc: LoroDocType = new LoroDoc();
     const mapping: LoroNodeMapping = new Map();
     updateLoroToPmState(loroDoc, mapping, _editorState);
 
     const node = createNodeFromLoroObj(
       schema,
       loroDoc.getMap(ROOT_DOC_KEY),
-      mapping,
+      mapping
     );
     const editorState = createEditorState(schema, examplePmContent.doc);
     expect(editorState.toJSON()).toEqual(examplePmContent);
   });
 
   test("node syncs changes correctly", async () => {
-    const loroDoc: LoroDocType = new Loro();
+    const loroDoc: LoroDocType = new LoroDoc();
     const mapping: LoroNodeMapping = new Map();
 
     loroDoc.subscribe((event) => clearChangedNodes(loroDoc, event, mapping));
@@ -492,12 +489,12 @@ describe("createNodeFromLoroObj", () => {
     // Now lets add a bullet list
     const bulletList = insertLoroMap(
       getLoroMapChildren(loroInnerDoc),
-      "bulletList",
+      "bulletList"
     );
     const bullet1 = insertLoroMap(getLoroMapChildren(bulletList), "listItem");
     const bullet1Paragraph = insertLoroMap(
       getLoroMapChildren(bullet1),
-      "paragraph",
+      "paragraph"
     );
     const bullet1Text = insertLoroText(getLoroMapChildren(bullet1Paragraph));
     bullet1Text.insert(0, "Bullet 1");
@@ -505,7 +502,7 @@ describe("createNodeFromLoroObj", () => {
     const bullet2 = insertLoroMap(getLoroMapChildren(bulletList), "listItem");
     const bullet2Paragraph = insertLoroMap(
       getLoroMapChildren(bullet2),
-      "paragraph",
+      "paragraph"
     );
     const bullet2Text = insertLoroText(getLoroMapChildren(bullet2Paragraph));
     bullet2Text.insert(0, "Bullet 2");

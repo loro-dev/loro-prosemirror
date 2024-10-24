@@ -14,9 +14,9 @@ import {
   undo,
   redo,
 } from "loro-prosemirror";
-import { Loro } from "loro-crdt";
+import { LoroDoc } from "loro-crdt";
 
-const doc = new Loro();
+const doc = new LoroDoc();
 const awareness = new CursorAwareness(doc.peerIdStr);
 const plugins = [
   ...pmPlugins,
