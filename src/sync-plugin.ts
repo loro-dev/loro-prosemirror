@@ -1,12 +1,12 @@
-import { Loro, type LoroEventBatch } from "loro-crdt";
+import type { LoroEventBatch, Subscription } from "loro-crdt";
+import { Fragment, Slice } from "prosemirror-model";
 import {
+  EditorState,
   Plugin,
   PluginKey,
   type StateField,
-  EditorState,
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { Slice, Fragment } from "prosemirror-model";
 import {
   type LoroDocType,
   type LoroNodeMapping,
@@ -38,9 +38,9 @@ export interface LoroSyncPluginProps {
 export interface LoroSyncPluginState extends LoroSyncPluginProps {
   changedBy: "local" | "import" | "checkout";
   mapping: LoroNodeMapping;
-  snapshot?: Loro | null;
+  snapshot?: LoroDocType | null;
   view?: EditorView;
-  docSubscription?: number | null;
+  docSubscription?: Subscription | null;
 }
 
 export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
@@ -77,7 +77,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
             break;
           case "update-state":
             state = { ...state, ...meta.state };
-            state.doc.commit("sys:init");
+            state.doc.commit({ origin: "sys:init" });
             break;
           default:
             break;
@@ -109,9 +109,10 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
 function init(view: EditorView) {
   const state = loroSyncPluginKey.getState(view.state) as LoroSyncPluginState;
 
+
   let docSubscription = state.docSubscription;
   if (docSubscription != null) {
-    state.doc.unsubscribe(docSubscription);
+    docSubscription()
   }
   docSubscription = state.doc.subscribe((event) => updateNodeOnLoroEvent(view, event));
 

@@ -1,9 +1,9 @@
 import type { Meta } from "@storybook/react";
 
-import { Editor } from "./Editor";
-import { Loro } from "loro-crdt";
+import { CursorAwareness, LoroDocType } from "loro-prosemirror";
 import { useEffect, useRef } from "react";
-import { CursorAwareness } from "loro-prosemirror";
+import { Editor } from "./Editor";
+import { LoroDoc } from "loro-crdt";
 
 const meta = {
   title: "Editor/Basic",
@@ -17,7 +17,7 @@ const meta = {
 export default meta;
 
 export const Basic = () => {
-  const loroARef = useRef<Loro>(new Loro());
+  const loroARef = useRef<LoroDocType>(new LoroDoc());
   const idA = loroARef.current.peerIdStr;
   const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
   return (
@@ -28,10 +28,10 @@ export const Basic = () => {
 };
 
 export const Sync = () => {
-  const loroARef = useRef<Loro>(new Loro());
+  const loroARef = useRef<LoroDocType>(new LoroDoc());
   const idA = loroARef.current.peerIdStr;
   const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
-  const loroBRef = useRef<Loro>(new Loro());
+  const loroBRef = useRef<LoroDocType>(new LoroDoc());
   const idB = loroBRef.current.peerIdStr;
   const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
   useEffect(() => {
