@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.1.0](https://github.com/loro-dev/loro-prosemirror/compare/v0.0.8...v0.1.0) (2024-10-25)
+
+
+### Features
+
+* support loro-crdt v1 ([901f50d](https://github.com/loro-dev/loro-prosemirror/commit/901f50d829da354de50846bd7f24bbd135f6485f))
+
 ## [0.0.8](https://github.com/loro-dev/loro-prosemirror/compare/v0.0.7...v0.0.8) (2024-08-22)
 
 
