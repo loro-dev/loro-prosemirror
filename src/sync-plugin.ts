@@ -1,4 +1,10 @@
-import type { LoroEventBatch, Subscription } from "loro-crdt";
+import {
+  type ContainerID,
+  LoroDoc,
+  type LoroEventBatch,
+  LoroMap,
+  type Subscription,
+} from "loro-crdt";
 import { Fragment, Slice } from "prosemirror-model";
 import {
   EditorState,
@@ -7,16 +13,21 @@ import {
   type StateField,
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
+
 import {
-  type LoroDocType,
-  type LoroNodeMapping,
   clearChangedNodes,
   createNodeFromLoroObj,
+  type LoroDocType,
+  type LoroNodeContainerType,
+  type LoroNodeMapping,
+  ROOT_DOC_KEY,
   updateLoroToPmState,
 } from "./lib";
 import { configLoroTextStyle } from "./text-style";
 
-export const loroSyncPluginKey = new PluginKey<LoroSyncPluginState>("loro-sync");
+export const loroSyncPluginKey = new PluginKey<LoroSyncPluginState>(
+  "loro-sync",
+);
 
 type PluginTransactionType =
   | {
@@ -33,13 +44,15 @@ type PluginTransactionType =
 export interface LoroSyncPluginProps {
   doc: LoroDocType;
   mapping?: LoroNodeMapping;
+  containerId?: ContainerID;
 }
 
 export interface LoroSyncPluginState extends LoroSyncPluginProps {
   changedBy: "local" | "import" | "checkout";
   mapping: LoroNodeMapping;
-  snapshot?: LoroDocType | null;
+  snapshot?: LoroDoc | null;
   view?: EditorView;
+  containerId?: ContainerID;
   docSubscription?: Subscription | null;
 }
 
@@ -59,8 +72,9 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
         return {
           doc: props.doc,
           mapping: props.mapping ?? new Map(),
-          changedBy: "local"
-        }
+          changedBy: "local",
+          containerId: props.containerId,
+        };
       },
       apply: (tr, state, oldEditorState, newEditorState) => {
         const meta = tr.getMeta(
@@ -73,11 +87,19 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
         }
         switch (meta?.type) {
           case "doc-changed":
-            updateLoroToPmState(state.doc as LoroDocType, state.mapping, newEditorState);
+            updateLoroToPmState(
+              state.doc as LoroDocType,
+              state.mapping,
+              newEditorState,
+              props.containerId,
+            );
             break;
           case "update-state":
             state = { ...state, ...meta.state };
-            state.doc.commit({ origin: "sys:init" });
+            state.doc.commit({
+              origin: "sys:init",
+              timestamp: Date.now(),
+            });
             break;
           default:
             break;
@@ -96,7 +118,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
     view: (view: EditorView) => {
       const timeoutId = setTimeout(() => init(view), 0);
       return {
-        update: (view: EditorView, prevState: EditorState) => { },
+        update: (view: EditorView, prevState: EditorState) => {},
         destroy: () => {
           clearTimeout(timeoutId);
         },
@@ -109,21 +131,32 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
 function init(view: EditorView) {
   const state = loroSyncPluginKey.getState(view.state) as LoroSyncPluginState;
 
-
   let docSubscription = state.docSubscription;
-  if (docSubscription != null) {
-    docSubscription()
-  }
-  docSubscription = state.doc.subscribe((event) => updateNodeOnLoroEvent(view, event));
 
-  const innerDoc = (state.doc as LoroDocType).getMap("doc");
+  docSubscription?.();
+
+  if (state.containerId) {
+    docSubscription = state.doc
+      .getContainerById(state.containerId)
+      .subscribe((event) => {
+        updateNodeOnLoroEvent(view, event);
+      });
+  } else {
+    docSubscription = state.doc.subscribe((event) =>
+      updateNodeOnLoroEvent(view, event)
+    );
+  }
+
+  const innerDoc = state.containerId
+    ? (state.doc.getContainerById(
+      state.containerId,
+    ) as LoroMap<LoroNodeContainerType>)
+    : (state.doc as LoroDocType).getMap(ROOT_DOC_KEY);
+
   const mapping: LoroNodeMapping = new Map();
   if (innerDoc.size === 0) {
     // Empty doc
-    const tr = view.state.tr.delete(
-      0,
-      view.state.doc.content.size,
-    )
+    const tr = view.state.tr.delete(0, view.state.doc.content.size);
     tr.setMeta(loroSyncPluginKey, {
       type: "update-state",
       state: { mapping, docSubscription, snapshot: null },
@@ -132,7 +165,11 @@ function init(view: EditorView) {
   } else {
     const schema = view.state.schema;
     // Create node from loro object
-    const node = createNodeFromLoroObj(schema, innerDoc, mapping);
+    const node = createNodeFromLoroObj(
+      schema,
+      innerDoc as LoroMap<LoroNodeContainerType>,
+      mapping,
+    );
     const tr = view.state.tr.replace(
       0,
       view.state.doc.content.size,
@@ -157,7 +194,11 @@ function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
   clearChangedNodes(state.doc as LoroDocType, event, mapping);
   const node = createNodeFromLoroObj(
     view.state.schema,
-    (state.doc as LoroDocType).getMap("doc"),
+    state.containerId
+      ? (state.doc.getContainerById(
+        state.containerId,
+      ) as LoroMap<LoroNodeContainerType>)
+      : (state.doc as LoroDocType).getMap(ROOT_DOC_KEY),
     mapping,
   );
   const tr = view.state.tr.replace(

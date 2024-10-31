@@ -9,14 +9,14 @@ import { useEffect, useRef } from "react";
 import {
   CursorAwareness,
   LoroCursorPlugin,
+  LoroDocType,
   LoroSyncPlugin,
   LoroUndoPlugin,
-  undo,
   redo,
-  LoroDocType,
+  undo,
 } from "loro-prosemirror";
 import "./Editor.css";
-import { LoroDoc } from "loro-crdt";
+import { ContainerID, LoroDoc } from "loro-crdt";
 import { buildMenuItems } from "./menu";
 
 const mySchema = new Schema({
@@ -27,16 +27,22 @@ const mySchema = new Schema({
 const doc = DOMParser.fromSchema(mySchema).parse(document.createElement("div"));
 
 /* eslint-disable */
-const plugins = exampleSetup({ schema: mySchema, history: false, menuContent: buildMenuItems(mySchema).fullMenu as any });
+const plugins = exampleSetup({
+  schema: mySchema,
+  history: false,
+  menuContent: buildMenuItems(mySchema).fullMenu as any,
+});
 
 export function Editor({
   loro,
   awareness,
   onCreateLoro,
+  containerId,
 }: {
   loro?: LoroDocType;
   awareness?: CursorAwareness;
   onCreateLoro?: (loro: LoroDocType) => void;
+  containerId?: ContainerID;
 }) {
   const editorRef = useRef<null | EditorView>(null);
   const editorDom = useRef(null);
@@ -56,12 +62,12 @@ export function Editor({
 
     const all = [
       ...plugins,
-      LoroSyncPlugin({ doc: loroRef.current! }),
+      LoroSyncPlugin({ doc: loroRef.current!, containerId }),
       LoroUndoPlugin({ doc: loroRef.current! }),
       keymap({
-        "Mod-z": state => undo(state, () => {}),
-        "Mod-y": state => redo(state, () => {}),
-        "Mod-Shift-z": state => redo(state, () => {}),
+        "Mod-z": (state) => undo(state, () => {}),
+        "Mod-y": (state) => redo(state, () => {}),
+        "Mod-Shift-z": (state) => redo(state, () => {}),
       }),
     ];
     if (awareness) {

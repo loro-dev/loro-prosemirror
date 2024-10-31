@@ -1,22 +1,38 @@
-import { Awareness, type Container, type ContainerID, Cursor, Loro, LoroList, LoroText, type PeerID } from "loro-crdt";
-import { EditorState, Plugin, PluginKey, Selection } from "prosemirror-state";
-import { Decoration, type DecorationAttrs, DecorationSet } from "prosemirror-view";
-import { type LoroSyncPluginState, loroSyncPluginKey } from "./sync-plugin";
+import {
+  type ContainerID,
+  Cursor,
+  LoroList,
+  LoroText,
+  type PeerID,
+} from "loro-crdt";
 import { Node } from "prosemirror-model";
-import { CHILDREN_KEY, type LoroDocType, type LoroNode, type LoroNodeMapping, WEAK_NODE_TO_LORO_CONTAINER_MAPPING } from "./lib";
+import { EditorState, Plugin, PluginKey, Selection } from "prosemirror-state";
+import {
+  Decoration,
+  type DecorationAttrs,
+  DecorationSet,
+} from "prosemirror-view";
+
 import { CursorAwareness, cursorEq } from "./awareness";
+import {
+  CHILDREN_KEY,
+  type LoroDocType,
+  type LoroNode,
+  type LoroNodeMapping,
+  WEAK_NODE_TO_LORO_CONTAINER_MAPPING,
+} from "./lib";
+import { loroSyncPluginKey, type LoroSyncPluginState } from "./sync-plugin";
 
 const loroCursorPluginKey = new PluginKey<{ awarenessUpdated: boolean }>(
   "loro-cursor",
 );
-
 
 function createDecorations(
   state: EditorState,
   awareness: CursorAwareness,
   plugin: Plugin<DecorationSet>,
   createSelection: (user: PeerID) => DecorationAttrs,
-  createCursor: (user: PeerID) => Element
+  createCursor: (user: PeerID) => Element,
 ): DecorationSet {
   const all = awareness.getAll();
   const d: Decoration[] = [];
@@ -37,23 +53,41 @@ function createDecorations(
       continue;
     }
 
-    const [focus, focusCursorUpdate] = cursorToAbsolutePosition(cursor.focus, doc as LoroDocType, loroState.mapping);
+    const [focus, focusCursorUpdate] = cursorToAbsolutePosition(
+      cursor.focus,
+      doc as LoroDocType,
+      loroState.mapping,
+    );
     d.push(Decoration.widget(focus, createCursor(peer as PeerID)));
     if (!cursorEq(cursor.anchor, cursor.focus)) {
-      const [anchor, anchorCursorUpdate] = cursorToAbsolutePosition(cursor.anchor, doc as LoroDocType, loroState.mapping);
-      d.push(Decoration.inline(Math.min(anchor, focus), Math.max(anchor, focus), createSelection(peer as PeerID)));
+      const [anchor, anchorCursorUpdate] = cursorToAbsolutePosition(
+        cursor.anchor,
+        doc as LoroDocType,
+        loroState.mapping,
+      );
+      d.push(
+        Decoration.inline(
+          Math.min(anchor, focus),
+          Math.max(anchor, focus),
+          createSelection(peer as PeerID),
+        ),
+      );
       if (focusCursorUpdate || anchorCursorUpdate) {
+        const existingLocalState = awareness.getLocalState();
         awareness.setLocal({
+          ...(existingLocalState?.user && { user: existingLocalState.user }),
           anchor: anchorCursorUpdate || cursor.anchor,
           focus: focusCursorUpdate || cursor.focus,
-        })
+        });
       }
     } else {
       if (focusCursorUpdate) {
+        const existingLocalState = awareness.getLocalState();
         awareness.setLocal({
+          ...(existingLocalState?.user && { user: existingLocalState.user }),
           focus: focusCursorUpdate,
-          anchor: focusCursorUpdate
-        })
+          anchor: focusCursorUpdate,
+        });
       }
     }
   }
@@ -65,32 +99,56 @@ function createDecorations(
 export const LoroCursorPlugin = (
   awareness: CursorAwareness,
   options: {
-    getSelection?: (state: EditorState) => Selection
-    createCursor?: (user: PeerID) => Element
-    createSelection?: (user: PeerID) => DecorationAttrs
+    getSelection?: (state: EditorState) => Selection;
+    createCursor?: (user: PeerID) => Element;
+    createSelection?: (user: PeerID) => DecorationAttrs;
+    user?: { name: string; color: string };
   },
 ) => {
-  const getSelection = options.getSelection || (state => state.selection)
-  const createSelection = options.createSelection || (user => ({ class: "loro-selection", "data-peer": user, style: `background-color: rgba(228, 208, 102, 0.5)` }))
-  const createCursor = options.createCursor || (user => {
-    const cursor = document.createElement('span')
-    cursor.classList.add('ProseMirror-loro-cursor')
-    cursor.setAttribute('style', `border-color: ${user.slice(0, 6)}`)
-    const userDiv = document.createElement('div')
-    userDiv.setAttribute('style', `background-color: ${user.slice(0, 6)}`)
-    userDiv.insertBefore(document.createTextNode(user.slice(0, 6)), null)
-    const nonbreakingSpace1 = document.createTextNode('\u2060')
-    const nonbreakingSpace2 = document.createTextNode('\u2060')
-    cursor.insertBefore(nonbreakingSpace1, null)
-    cursor.insertBefore(userDiv, null)
-    cursor.insertBefore(nonbreakingSpace2, null)
-    return cursor
-  });
+  const getSelection = options.getSelection || ((state) => state.selection);
+  const createSelection = options.createSelection ||
+    ((user) => ({
+      class: "loro-selection",
+      "data-peer": user,
+      style: `background-color: rgba(228, 208, 102, 0.5)`,
+    }));
+  const createCursor = options.createCursor ||
+    ((user) => {
+      const awarenessData = awareness.getAllStates();
+      const cursorUserData = awarenessData[user];
+      const cursor = document.createElement("span");
+      cursor.classList.add("ProseMirror-loro-cursor");
+      cursor.setAttribute(
+        "style",
+        `border-color: ${cursorUserData.user?.color ?? user.slice(0, 6)}`,
+      );
+      const userDiv = document.createElement("div");
+      userDiv.setAttribute(
+        "style",
+        `background-color: ${cursorUserData.user?.color ?? user.slice(0, 6)}`,
+      );
+      userDiv.insertBefore(
+        document.createTextNode(cursorUserData.user?.name ?? user.slice(0, 6)),
+        null,
+      );
+      const nonbreakingSpace1 = document.createTextNode("\u2060");
+      const nonbreakingSpace2 = document.createTextNode("\u2060");
+      cursor.insertBefore(nonbreakingSpace1, null);
+      cursor.insertBefore(userDiv, null);
+      cursor.insertBefore(nonbreakingSpace2, null);
+      return cursor;
+    });
   const plugin: Plugin<DecorationSet> = new Plugin<DecorationSet>({
     key: loroCursorPluginKey,
     state: {
       init(_, state) {
-        return createDecorations(state, awareness, plugin, createSelection, createCursor);
+        return createDecorations(
+          state,
+          awareness,
+          plugin,
+          createSelection,
+          createCursor,
+        );
       },
       apply(tr, prevState, _oldState, newState) {
         const loroState = loroSyncPluginKey.getState(newState);
@@ -101,7 +159,13 @@ export const LoroCursorPlugin = (
           (loroState && loroState.changedBy !== "local") ||
           (loroCursorState && loroCursorState.awarenessUpdated)
         ) {
-          return createDecorations(newState, awareness, plugin, createSelection, createCursor);
+          return createDecorations(
+            newState,
+            awareness,
+            plugin,
+            createSelection,
+            createCursor,
+          );
         }
 
         return prevState.map(tr.mapping, tr.doc);
@@ -109,7 +173,7 @@ export const LoroCursorPlugin = (
     },
     props: {
       decorations: (state) => {
-        return plugin.getState(state)
+        return plugin.getState(state);
       },
     },
     view: (view) => {
@@ -119,7 +183,7 @@ export const LoroCursorPlugin = (
             let tr = view.state.tr;
             tr.setMeta(loroCursorPluginKey, { awarenessUpdated: true });
             view.dispatch(tr);
-          }, 0)
+          }, 0);
         }
       };
 
@@ -135,15 +199,20 @@ export const LoroCursorPlugin = (
         const pmRootNode = view.state.doc;
         if (view.hasFocus()) {
           const selection = getSelection(view.state);
-          const { anchor, focus } = convertPmSelectionToCursors(pmRootNode, selection, loroState);
+          const { anchor, focus } = convertPmSelectionToCursors(
+            pmRootNode,
+            selection,
+            loroState,
+          );
           if (
             current == null ||
             !cursorEq(current.anchor, anchor) ||
             !cursorEq(current.focus, focus)
           ) {
             awareness.setLocal({
+              user: options.user,
               anchor,
-              focus
+              focus,
             });
           } else {
           }
@@ -172,30 +241,48 @@ export const LoroCursorPlugin = (
   return plugin;
 };
 
-
-export function convertPmSelectionToCursors(pmRootNode: Node, selection: Selection, loroState: LoroSyncPluginState) {
+export function convertPmSelectionToCursors(
+  pmRootNode: Node,
+  selection: Selection,
+  loroState: LoroSyncPluginState,
+) {
   const anchor = absolutePositionToCursor(
     pmRootNode,
     selection.anchor,
     loroState.doc as LoroDocType,
-    loroState.mapping
+    loroState.mapping,
   );
-  const focus = selection.head == selection.anchor ? anchor : absolutePositionToCursor(
-    pmRootNode,
-    selection.head,
-    loroState.doc as LoroDocType,
-    loroState.mapping
-  );
+  const focus = selection.head == selection.anchor
+    ? anchor
+    : absolutePositionToCursor(
+      pmRootNode,
+      selection.head,
+      loroState.doc as LoroDocType,
+      loroState.mapping,
+    );
   return { anchor, focus };
 }
 
-function absolutePositionToCursor(pmRootNode: Node, anchor: number, doc: LoroDocType, mapping: LoroNodeMapping): Cursor | undefined {
+function getByValue(map: Map<ContainerID, Node | Node[]>, searchValue: Node) {
+  for (let [key, value] of map.entries()) {
+    if (value === searchValue) return key;
+  }
+}
+
+function absolutePositionToCursor(
+  pmRootNode: Node,
+  anchor: number,
+  doc: LoroDocType,
+  mapping: LoroNodeMapping,
+): Cursor | undefined {
   const pos = pmRootNode.resolve(anchor);
   const nodeParent = pos.node(pos.depth);
-  const offset = pos.parentOffset
-  const loroId = WEAK_NODE_TO_LORO_CONTAINER_MAPPING.get(nodeParent);
-  if (loroId == null) {
-    console.error("Cannot find the loroNode")
+  const offset = pos.parentOffset;
+
+  const loroId = WEAK_NODE_TO_LORO_CONTAINER_MAPPING.get(nodeParent) ??
+    getByValue(mapping, nodeParent);
+  if (!loroId) {
+    console.error("Cannot find the loroNode");
     return;
   }
 
@@ -203,7 +290,7 @@ function absolutePositionToCursor(pmRootNode: Node, anchor: number, doc: LoroDoc
   const children = loroMap.get(CHILDREN_KEY);
   if (children.length == 0) {
     // This is a new line, so we can use the list cursor instead
-    return children.getCursor(0)
+    return children.getCursor(0);
   }
 
   let index = offset;
@@ -234,9 +321,12 @@ function absolutePositionToCursor(pmRootNode: Node, anchor: number, doc: LoroDoc
   return undefined;
 }
 
-
-export function cursorToAbsolutePosition(cursor: Cursor, doc: LoroDocType, mapping: LoroNodeMapping): [number, Cursor | undefined] {
-  const containerId = cursor.containerId()
+export function cursorToAbsolutePosition(
+  cursor: Cursor,
+  doc: LoroDocType,
+  mapping: LoroNodeMapping,
+): [number, Cursor | undefined] {
+  const containerId = cursor.containerId();
   let index = -1;
   let targetChildId: ContainerID;
   let loroNode: LoroNode | undefined;
@@ -269,14 +359,14 @@ export function cursorToAbsolutePosition(cursor: Cursor, doc: LoroDocType, mappi
 
         const mapped = mapping.get(iter.id);
         if (Array.isArray(mapped)) {
-          mapped.forEach(child => {
+          mapped.forEach((child) => {
             index += child.nodeSize;
-          })
+          });
         } else {
           if (mapped != null) {
             index += mapped.nodeSize;
           } else {
-            console.error(childIds, children.toJSON())
+            console.error(childIds, children.toJSON());
           }
         }
       }
@@ -291,4 +381,3 @@ export function cursorToAbsolutePosition(cursor: Cursor, doc: LoroDocType, mappi
 
   return [index, update];
 }
-
