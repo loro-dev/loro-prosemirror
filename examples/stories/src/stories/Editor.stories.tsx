@@ -135,8 +135,7 @@ export const Sync = () => {
   );
 };
 
-export const BroadcastChannel = () => {
-  // @ts-expect-error
+export const BroadcastChannelExample = () => {
   const bcA = useRef<BroadcastChannel>(new BroadcastChannel(`A`));
   const loroARef = useRef<LoroDocType>(new LoroDoc());
   const idA = loroARef.current.peerIdStr;
