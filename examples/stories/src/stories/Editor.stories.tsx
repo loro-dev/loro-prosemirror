@@ -27,38 +27,38 @@ export const Basic = () => {
   );
 };
 
-type UpdateType = 'ephemeral' | 'awareness' | 'crdt'
+type UpdateType = "ephemeral" | "awareness" | "crdt";
 type UpdateMessage = {
-  type: 'update'
-  updateType: UpdateType
-  payload: Uint8Array
-}
+  type: "update";
+  updateType: UpdateType;
+  payload: Uint8Array;
+};
 
 function parseMessage(data: Uint8Array): UpdateMessage {
-  const messageType = data[0]
+  const messageType = data[0];
   switch (messageType) {
     case 1: {
       // Update
       const updateType = (() => {
         switch (data[1]) {
           case 0:
-            return 'ephemeral'
+            return "ephemeral";
           case 1:
-            return 'awareness'
+            return "awareness";
           case 2:
-            return 'crdt'
+            return "crdt";
           default:
-            throw new Error(`Unknown update type: ${data[1]}`)
+            throw new Error(`Unknown update type: ${data[1]}`);
         }
-      })()
+      })();
       return {
-        type: 'update',
+        type: "update",
         updateType,
         payload: data.slice(2),
-      }
+      };
     }
     default:
-      throw new Error(`Unknown message type: ${messageType}`)
+      throw new Error(`Unknown message type: ${messageType}`);
   }
 }
 
@@ -66,12 +66,15 @@ function encodeUpdateMessage(
   updateType: UpdateType,
   payload: Uint8Array,
 ): Uint8Array {
-  const message = new Uint8Array(2 + payload.length)
-  message[0] = 1
-  message[1] =
-    updateType === 'ephemeral' ? 0 : updateType === 'awareness' ? 1 : 2
-  message.set(payload, 2)
-  return message
+  const message = new Uint8Array(2 + payload.length);
+  message[0] = 1;
+  message[1] = updateType === "ephemeral"
+    ? 0
+    : updateType === "awareness"
+    ? 1
+    : 2;
+  message.set(payload, 2);
+  return message;
 }
 
 export const Sync = () => {
@@ -85,14 +88,20 @@ export const Sync = () => {
     loroARef.current.subscribe((event) => {
       if (event.by === "local") {
         loroBRef.current.import(
-          loroARef.current.export({ mode: 'update', from: loroBRef.current.oplogVersion() }),
+          loroARef.current.export({
+            mode: "update",
+            from: loroBRef.current.oplogVersion(),
+          }),
         );
       }
     });
     loroBRef.current.subscribe((event) => {
       if (event.by === "local") {
         loroARef.current.import(
-          loroBRef.current.export({ mode: 'update', from: loroARef.current.oplogVersion() }),
+          loroBRef.current.export({
+            mode: "update",
+            from: loroARef.current.oplogVersion(),
+          }),
         );
       }
     });
@@ -112,45 +121,60 @@ export const Sync = () => {
 
   return (
     <div>
-      <Editor loro={loroARef.current} awareness={awarenessA.current} />
-      <Editor loro={loroBRef.current} awareness={awarenessB.current} />
+      <Editor
+        loro={loroARef.current}
+        awareness={awarenessA.current}
+        containerId={loroARef.current?.getMap("doc")?.id}
+      />
+      <Editor
+        loro={loroBRef.current}
+        awareness={awarenessB.current}
+        containerId={loroARef.current?.getMap("doc")?.id}
+      />
     </div>
   );
 };
 
-export const BroadcastChannel = () =>{
+export const BroadcastChannel = () => {
   // @ts-expect-error
-  const bcA = useRef<BroadcastChannel>(new BroadcastChannel(`A`))
+  const bcA = useRef<BroadcastChannel>(new BroadcastChannel(`A`));
   const loroARef = useRef<LoroDocType>(new LoroDoc());
   const idA = loroARef.current.peerIdStr;
   const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
   const [lastStateA, setLastStateA] = useState<VersionVector | undefined>();
   useEffect(() => {
     bcA.current.onmessage = (event) => {
-      const parsedMessage = parseMessage(event.data)
-      if (parsedMessage.type === 'update') {
+      const parsedMessage = parseMessage(event.data);
+      if (parsedMessage.type === "update") {
         // Handle different update types
         switch (parsedMessage.updateType) {
-          case 'ephemeral':
-            break
-          case 'awareness':
-            break
-          case 'crdt':
-            loroARef.current.import(parsedMessage.payload)
-            loroARef.current.commit({origin: 'sys:bc-update'})
-            break
+          case "ephemeral":
+            break;
+          case "awareness":
+            break;
+          case "crdt":
+            loroARef.current.import(parsedMessage.payload);
+            loroARef.current.commit({ origin: "sys:bc-update" });
+            break;
         }
       }
-    }
+    };
     loroARef.current.subscribe((event) => {
       if (event.by === "local") {
-        bcA.current.postMessage(encodeUpdateMessage('crdt', loroARef.current.export({ mode: 'update', from: lastStateA})))
-        setLastStateA(loroARef.current.version())
+        bcA.current.postMessage(
+          encodeUpdateMessage(
+            "crdt",
+            loroARef.current.export({ mode: "update", from: lastStateA }),
+          ),
+        );
+        setLastStateA(loroARef.current.version());
       }
     });
     awarenessA.current.addListener((_state, origin) => {
       if (origin === "local") {
-        bcA.current.postMessage(encodeUpdateMessage('awareness', awarenessA.current.encode([idA])))
+        bcA.current.postMessage(
+          encodeUpdateMessage("awareness", awarenessA.current.encode([idA])),
+        );
       }
     });
 
@@ -159,7 +183,7 @@ export const BroadcastChannel = () =>{
 
   return (
     <div>
-      <Editor loro={loroARef.current} awareness={awarenessA.current}  />
+      <Editor loro={loroARef.current} awareness={awarenessA.current} />
     </div>
   );
-}
+};
