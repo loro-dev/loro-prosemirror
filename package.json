@@ -14,8 +14,7 @@
   "homepage": "https://github.com/loro-dev/loro-prosemirror#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/loro-dev/loro-prosemirror.git",
-    "directory": "packages/lit"
+    "url": "git+https://github.com/loro-dev/loro-prosemirror.git"
   },
   "bugs": {
     "url": "https://github.com/loro-dev/loro-prosemirror/issues"
