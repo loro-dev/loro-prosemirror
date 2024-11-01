@@ -11,6 +11,15 @@
     "lint": "tsc --noEmit",
     "coverage": "vitest run --coverage"
   },
+  "homepage": "https://github.com/loro-dev/loro-prosemirror#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/loro-dev/loro-prosemirror.git",
+    "directory": "packages/lit"
+  },
+  "bugs": {
+    "url": "https://github.com/loro-dev/loro-prosemirror/issues"
+  },
   "keywords": [
     "rich-text",
     "prosemirror",
