@@ -1,23 +1,25 @@
 export const styles = {
   container: {
     display: 'flex', 
-    flexDirection: 'column' as const, 
+    flexDirection: 'row' as const, 
     gap: '24px',
     padding: '24px',
     backgroundColor: '#f5f5f5',
-    minHeight: '100vh'
   },
   
   editorsContainer: {
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: '24px'
-  },
+    gap: '24px',
+    maxHeight: 'calc(100vh - 128px)',
+    padding: '24px',
+    overflowY: "auto"
+  } as const,
   
   editorCard: {
     backgroundColor: 'white',
     borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
   },
   
   editorHeader: {
