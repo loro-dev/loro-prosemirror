@@ -79,4 +79,4 @@ export const styles = {
     padding: '8px 0',
     zIndex: 1
   }
-} as const; 
+}; 
