@@ -32,7 +32,7 @@ export function DagViewComponent({ nodes, frontiers }: { nodes: ViewDagNode[], f
                     <div
                         className="dag-view-message"
                         style={{
-                            fontSize: '14px',
+                            fontSize: '12px',
                             fontFamily: "'Helvetica Neue', Arial, sans-serif"
                         }}
                     >
@@ -136,6 +136,7 @@ function renderConnection(type: 'input' | 'output', xFrom: number, xTo: number, 
         />
     );
 }
+
 
 function tidToColor(tid: number): string {
     // Generate a beautiful color based on the thread ID

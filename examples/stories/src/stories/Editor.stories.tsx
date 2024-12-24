@@ -1,4 +1,4 @@
-import type { Meta } from "@storybook/react";
+import type { Meta, StoryFn } from "@storybook/react";
 
 import { Editor } from "./Editor";
 import { LoroDoc, VersionVector } from "loro-crdt";
@@ -41,6 +41,13 @@ export const BasicWithHistory = () => {
   const idA = loroARef.current.peerIdStr;
   const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
 
+  const DagView: StoryFn<{ nodes: ViewDagNode[], frontiers: string[] }> = (args) => (
+    <div style={styles.historyCard}>
+      <h3 style={styles.historyTitle}>Operation History</h3>
+      <DagViewComponent {...args} />
+    </div>
+  );
+
   useEffect(() => {
     loroARef.current.setRecordTimestamp(true);
 
@@ -72,13 +79,7 @@ export const BasicWithHistory = () => {
         </div>
       </div>
       
-      <div style={styles.historyCard}>
-        <h3 style={styles.historyTitle}>Operation History</h3>
-        <DagViewComponent
-          nodes={dagInfo.nodes}
-          frontiers={dagInfo.frontiers}
-        />
-      </div>
+      <DagView nodes={dagInfo.nodes} frontiers={dagInfo.frontiers} />
     </div>
   );
 };
@@ -204,6 +205,13 @@ export const SyncWithHistory = () => {
   const idB = loroBRef.current.peerIdStr;
   const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
 
+  const DagView: StoryFn<{ nodes: ViewDagNode[], frontiers: string[] }> = (args) => (
+    <div style={styles.historyCard}>
+      <h3 style={styles.historyTitle}>Operation History</h3>
+      <DagViewComponent {...args} />
+    </div>
+  );
+
   useEffect(() => {
     loroARef.current.setRecordTimestamp(true);
     loroBRef.current.setRecordTimestamp(true);
@@ -286,13 +294,60 @@ export const SyncWithHistory = () => {
         </div>
       </div>
       
-      <div style={styles.historyCard}>
-        <h3 style={styles.historyTitle}>Operation History</h3>
-        <DagViewComponent
-          nodes={dagInfo.nodes}
-          frontiers={dagInfo.frontiers}
-        />
-      </div>
+      <DagView nodes={dagInfo.nodes} frontiers={dagInfo.frontiers} />
+    </div>
+  );
+};
+
+
+export const BroadcastChannelExample = () => {
+  const bcA = useRef<BroadcastChannel>(new BroadcastChannel(`A`));
+  const loroARef = useRef<LoroDocType>(new LoroDoc());
+  const idA = loroARef.current.peerIdStr;
+  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
+  const [lastStateA, setLastStateA] = useState<VersionVector | undefined>();
+  useEffect(() => {
+    bcA.current.onmessage = (event) => {
+      const parsedMessage = parseMessage(event.data);
+      if (parsedMessage.type === "update") {
+        // Handle different update types
+        switch (parsedMessage.updateType) {
+          case "ephemeral":
+            break;
+          case "awareness":
+            break;
+          case "crdt":
+            loroARef.current.import(parsedMessage.payload);
+            loroARef.current.commit({ origin: "sys:bc-update" });
+            break;
+        }
+      }
+    };
+    loroARef.current.subscribe((event) => {
+      if (event.by === "local") {
+        bcA.current.postMessage(
+          encodeUpdateMessage(
+            "crdt",
+            loroARef.current.export({ mode: "update", from: lastStateA }),
+          ),
+        );
+        setLastStateA(loroARef.current.version());
+      }
+    });
+    awarenessA.current.addListener((_state, origin) => {
+      if (origin === "local") {
+        bcA.current.postMessage(
+          encodeUpdateMessage("awareness", awarenessA.current.encode([idA])),
+        );
+      }
+    });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div>
+      <Editor loro={loroARef.current} awareness={awarenessA.current} />
     </div>
   );
 };
@@ -314,6 +369,13 @@ export const OfflineSyncWithHistory = () => {
   
   const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
   const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
+
+  const DagView: StoryFn<{ nodes: ViewDagNode[], frontiers: string[] }> = (args) => (
+    <div style={styles.historyCard}>
+      <h3 style={styles.historyTitle}>Operation History</h3>
+      <DagViewComponent {...args} />
+    </div>
+  );
 
   useEffect(() => {
     loroARef.current.setRecordTimestamp(true);
@@ -432,13 +494,7 @@ export const OfflineSyncWithHistory = () => {
         </div>
       </div>
       
-      <div style={styles.historyCard}>
-        <h3 style={styles.historyTitle}>Operation History</h3>
-        <DagViewComponent
-          nodes={dagInfo.nodes}
-          frontiers={dagInfo.frontiers}
-        />
-      </div>
+      <DagView nodes={dagInfo.nodes} frontiers={dagInfo.frontiers} />
     </div>
   );
 };
@@ -472,6 +528,19 @@ export const MultiOfflineSyncWithHistory = () => {
   const awarenessC = useRef<CursorAwareness>(new CursorAwareness(idC));
   const awarenessD = useRef<CursorAwareness>(new CursorAwareness(idD));
   const awarenessE = useRef<CursorAwareness>(new CursorAwareness(idE));
+
+  const DagTemplate: StoryFn<{ nodes: ViewDagNode[], frontiers: string[] }> = (args) => (
+    <div style={styles.historyCard}>
+      <h3 style={styles.historyTitle}>Operation History</h3>
+      <DagViewComponent {...args} />
+    </div>
+  );
+
+  const DagView = DagTemplate.bind({});
+  DagView.args = {
+    nodes: dagInfo.nodes,
+    frontiers: dagInfo.frontiers,
+  };
 
   useEffect(() => {
     loroARef.current.setRecordTimestamp(true);
@@ -598,12 +667,12 @@ const syncWhenOnline = useCallback((editorRef: React.RefObject<LoroDocType>, isO
 
   otherOnlineEditors.forEach(({ ref: otherRef }) => {
     // Sync other editors to the current editor first
-    const otherSnapshot = otherRef.current.export({ mode: "snapshot" });
+    const otherSnapshot = otherRef.current.export({ mode: "update" });
     editorRef.current?.import(otherSnapshot);
     editorRef.current?.commit();
 
     // Then synchronize the current editor to another editor
-    const currentSnapshot = editorRef.current?.export({ mode: "snapshot" });
+    const currentSnapshot = editorRef.current?.export({ mode: "update" });
     if (currentSnapshot) {
       otherRef.current.import(currentSnapshot);
       otherRef.current.commit();
@@ -741,66 +810,7 @@ useEffect(() => {
           </div>
         </div>
       </div>
-      
-      <div style={styles.historyCard}>
-        <h3 style={styles.historyTitle}>Operation History</h3>
-        <DagViewComponent
-          nodes={dagInfo.nodes}
-          frontiers={dagInfo.frontiers}
-        />
-      </div>
-    </div>
-  );
-};
-
-export const BroadcastChannelExample = () => {
-  const bcA = useRef<BroadcastChannel>(new BroadcastChannel(`A`));
-  const loroARef = useRef<LoroDocType>(new LoroDoc());
-  const idA = loroARef.current.peerIdStr;
-  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
-  const [lastStateA, setLastStateA] = useState<VersionVector | undefined>();
-  useEffect(() => {
-    bcA.current.onmessage = (event) => {
-      const parsedMessage = parseMessage(event.data);
-      if (parsedMessage.type === "update") {
-        // Handle different update types
-        switch (parsedMessage.updateType) {
-          case "ephemeral":
-            break;
-          case "awareness":
-            break;
-          case "crdt":
-            loroARef.current.import(parsedMessage.payload);
-            loroARef.current.commit({ origin: "sys:bc-update" });
-            break;
-        }
-      }
-    };
-    loroARef.current.subscribe((event) => {
-      if (event.by === "local") {
-        bcA.current.postMessage(
-          encodeUpdateMessage(
-            "crdt",
-            loroARef.current.export({ mode: "update", from: lastStateA }),
-          ),
-        );
-        setLastStateA(loroARef.current.version());
-      }
-    });
-    awarenessA.current.addListener((_state, origin) => {
-      if (origin === "local") {
-        bcA.current.postMessage(
-          encodeUpdateMessage("awareness", awarenessA.current.encode([idA])),
-        );
-      }
-    });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return (
-    <div>
-      <Editor loro={loroARef.current} awareness={awarenessA.current} />
+        <DagView nodes={dagInfo.nodes} frontiers={dagInfo.frontiers} />
     </div>
   );
 };

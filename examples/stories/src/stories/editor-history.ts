@@ -45,8 +45,6 @@ export function convertSyncStepsToNodes(
         });
     });
 
-    console.log('Stored Operations:', storedOperations);
-
     const frontiers = doc.oplogFrontiers().map(f => 
         idToString({
             peer: f.peer,
@@ -80,8 +78,8 @@ export function convertSyncStepsToNodes(
         });
     }
 
-    frontiers.forEach(frontier => {
-        dfs(frontier);
+    storedOperations.forEach(op => {
+        dfs(op.id);
     });
 
     return { nodes, frontiers };
