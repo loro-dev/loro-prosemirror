@@ -1,97 +1,52 @@
 import type { ViewDagNode } from "./DagView";
-import type { 
-    LoroDoc,
-    OpId,
-    Change
-} from "loro-crdt";
-
-// Persistently stored operation records
-interface StoredOperation {
-    id: string;  // opId string
-    deps: string[];
-    lamport: number;
-    message: string;
-    author: string;
-    timestamp: number;
-}
-
-const storedOperations: StoredOperation[] = [];
+import type { LoroDoc } from "loro-crdt";
 
 export function convertSyncStepsToNodes(
     doc: LoroDoc
 ): { nodes: ViewDagNode[]; frontiers: string[] } {
-    const changes = doc.getAllChanges();
+    const frontiers = doc.oplogFrontiers();
+    const stack = frontiers.concat();
+    const nodes: ViewDagNode[] = [];
     const visited = new Set<string>();
+    const processedIds = new Set<string>();
     
-    // Update persistent storage
-    changes.forEach((peerChanges) => {
-        peerChanges.forEach((change) => {
-            const opId = idToString({ 
-                peer: change.peer, 
-                counter: change.counter + change.length - 1 
+    // Build an ordered list of nodes using DFS
+    while (stack.length > 0) {
+        const top = stack.pop()!;
+        const change = doc.getChangeAt(top);
+        
+        const nodeId = idToString({ 
+            peer: change.peer, 
+            counter: top.counter
+        });
+        
+        if (!processedIds.has(nodeId)) {
+            processedIds.add(nodeId);
+            
+            const deps = change.deps.map(idToString);
+            
+            nodes.push({
+                id: nodeId,
+                deps,
+                lamport: change.lamport,
+                message: `Change at ${change.counter} (length: ${change.length})`,
+                author: change.peer || '',
+                timestamp: change.timestamp ? change.timestamp * 1000 : Date.now()
             });
 
-            // If the operation has not already been stored
-            if (!storedOperations.some(op => op.id === opId)) {
-                storedOperations.push({
-                    id: opId,
-                    deps: change.deps.map(dep => idToString(dep)),
-                    lamport: change.lamport + change.length - 1,
-                    message: formatChangeMessage(change),
-                    author: change.peer,
-                    timestamp: change.timestamp ? change.timestamp * 1000 : Date.now(),
-                });
+            for (const dep of change.deps) {
+                const depId = idToString(dep);
+                if (!visited.has(depId)) {
+                    stack.push(dep);
+                    visited.add(depId);
+                }
             }
-        });
-    });
-
-    const frontiers = doc.oplogFrontiers().map(f => 
-        idToString({
-            peer: f.peer,
-            counter: f.counter
-        })
-    );
-
-    // Build an ordered list of nodes using DFS
-    const nodes: ViewDagNode[] = [];
-    const nodeMap = new Map<string, StoredOperation>();
-    storedOperations.forEach(op => nodeMap.set(op.id, op));
-
-    function dfs(opId: string) {
-        if (visited.has(opId)) return;
-        visited.add(opId);
-
-        const operation = nodeMap.get(opId);
-        if (!operation) return;
-
-        operation.deps.forEach(depId => {
-            dfs(depId);
-        });
-
-        nodes.push({
-            id: operation.id,
-            deps: operation.deps,
-            lamport: operation.lamport,
-            message: operation.message,
-            author: operation.author,
-            timestamp: operation.timestamp
-        });
+        }
     }
 
-    storedOperations.forEach(op => {
-        dfs(op.id);
-    });
-
-    return { nodes, frontiers };
+    return {nodes: nodes, frontiers: frontiers.map(idToString)};
 }
 
-function formatChangeMessage(change: Change): string {
-    if (change.message) {
-        return change.message;
-    }
-    return `Change at ${change.counter} (length: ${change.length})`;
-}
-
-export function idToString(id: OpId): string {
+export function idToString(id: { peer: string; counter: number }): string {
     return `${id.counter}@${id.peer}`;
 }

@@ -67,13 +67,13 @@ export const styles = {
     fontFamily: 'monospace',
     whiteSpace: 'pre',
     fontSize: '14px',
-  },
+  } as CSSProperties,
   
   historyTitle: {
     margin: '0 0 16px 0',
     color: '#2c3e50',
     fontSize: '18px',
-    position: 'sticky',
+    position: 'sticky' as const,
     top: 0,
     backgroundColor: 'white',
     padding: '8px 0',
