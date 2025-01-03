@@ -1,9 +1,13 @@
-import type { Meta } from "@storybook/react";
+import type { Meta, StoryFn } from "@storybook/react";
 
 import { Editor } from "./Editor";
 import { LoroDoc, VersionVector } from "loro-crdt";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { CursorAwareness, LoroDocType } from "loro-prosemirror";
+import { DagViewComponent } from './DagView';
+import type { ViewDagNode } from "./DagView";
+import { convertSyncStepsToNodes } from "./editor-history";
+import { styles } from './styles/CollaborativeEditor.styles';
 
 const meta = {
   title: "Editor/Basic",
@@ -23,6 +27,59 @@ export const Basic = () => {
   return (
     <div>
       <Editor loro={loroARef.current} awareness={awarenessA.current} />
+    </div>
+  );
+};
+
+export const BasicWithHistory = () => {
+  const [dagInfo, setDagInfo] = useState<{
+    nodes: ViewDagNode[];
+    frontiers: string[];
+  }>({ nodes: [], frontiers: [] });
+
+  const loroARef = useRef<LoroDocType>(new LoroDoc());
+  const idA = loroARef.current.peerIdStr;
+  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
+
+  const DagView: StoryFn<{ nodes: ViewDagNode[], frontiers: string[] }> = (args) => (
+    <div style={styles.historyCard}>
+      <h3 style={styles.historyTitle}>Operation History</h3>
+      <DagViewComponent {...args} />
+    </div>
+  );
+
+  useEffect(() => {
+    loroARef.current.setRecordTimestamp(true);
+
+    const subscription = loroARef.current.subscribe((event) => {
+      if (event.by === "local") {
+        loroARef.current.commit();        
+        const updatedDagInfo = convertSyncStepsToNodes(loroARef.current);
+        setDagInfo(updatedDagInfo);
+      }
+    });
+
+    return () => subscription();
+  }, [idA]);
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.editorsContainer}>
+        <div style={styles.editorCard}>
+          <div style={styles.editorHeader}>
+            <h3 style={styles.editorTitle}>Editor</h3>
+          </div>
+          <div style={styles.editorContent}>
+            <Editor
+              loro={loroARef.current}
+              awareness={awarenessA.current}
+              containerId={loroARef.current.getMap("doc").id}
+            />
+          </div>
+        </div>
+      </div>
+      
+      <DagView nodes={dagInfo.nodes} frontiers={dagInfo.frontiers} />
     </div>
   );
 };
@@ -135,6 +192,114 @@ export const Sync = () => {
   );
 };
 
+export const SyncWithHistory = () => {
+  const [dagInfo, setDagInfo] = useState<{
+    nodes: ViewDagNode[];
+    frontiers: string[];
+  }>({ nodes: [], frontiers: [] });
+
+  const loroARef = useRef<LoroDocType>(new LoroDoc());
+  const idA = loroARef.current.peerIdStr;
+  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
+  const loroBRef = useRef<LoroDocType>(new LoroDoc());
+  const idB = loroBRef.current.peerIdStr;
+  const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
+
+  const DagView: StoryFn<{ nodes: ViewDagNode[], frontiers: string[] }> = (args) => (
+    <div style={styles.historyCard}>
+      <h3 style={styles.historyTitle}>Operation History</h3>
+      <DagViewComponent {...args} />
+    </div>
+  );
+
+  useEffect(() => {
+    loroARef.current.setRecordTimestamp(true);
+    loroBRef.current.setRecordTimestamp(true);
+    
+    const subscriptionA = loroARef.current.subscribe((event) => {
+      if (event.by === "local") {
+        loroARef.current.commit();
+        
+        const updateBytes = loroARef.current.export({
+          mode: "update",
+          from: loroBRef.current.oplogVersion(),
+        });
+        loroBRef.current.import(updateBytes);
+        
+        const updatedDagInfo = convertSyncStepsToNodes(loroARef.current);
+        setDagInfo(updatedDagInfo);
+      }
+    });
+
+    const subscriptionB = loroBRef.current.subscribe((event) => {
+      if (event.by === "local") {
+        loroBRef.current.commit();
+        
+        const updateBytes = loroBRef.current.export({
+          mode: "update",
+          from: loroARef.current.oplogVersion(),
+        });
+        loroARef.current.import(updateBytes);
+        
+        const updatedDagInfo = convertSyncStepsToNodes(loroBRef.current);
+        setDagInfo(updatedDagInfo);
+      }
+    });
+
+    awarenessA.current.addListener((_state, origin) => {
+      if (origin === "local") {
+        awarenessB.current.apply(awarenessA.current.encode([idA]));
+      }
+    });
+
+    awarenessB.current.addListener((_state, origin) => {
+      if (origin === "local") {
+        awarenessA.current.apply(awarenessB.current.encode([idB]));
+      }
+    });
+
+    return () => {
+      subscriptionA();
+      subscriptionB();
+    };
+  }, [idA, idB]);
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.editorsContainer}>
+        <div style={styles.editorCard}>
+          <div style={styles.editorHeader}>
+            <h3 style={styles.editorTitle}>Editor A</h3>
+          </div>
+          <div style={styles.editorContent}>
+            <Editor
+              loro={loroARef.current}
+              awareness={awarenessA.current}
+              containerId={loroARef.current.getMap("doc").id}
+            />
+          </div>
+        </div>
+        
+        <div style={styles.editorCard}>
+          <div style={styles.editorHeader}>
+            <h3 style={styles.editorTitle}>Editor B</h3>
+          </div>
+          <div style={styles.editorContent}>
+            <Editor
+              loro={loroBRef.current}
+              awareness={awarenessB.current}
+              containerId={loroBRef.current.getMap("doc").id}
+            />
+          </div>
+        </div>
+      </div>
+      
+      <DagView nodes={dagInfo.nodes} frontiers={dagInfo.frontiers} />
+    </div>
+  );
+};
+
+
 export const BroadcastChannelExample = () => {
   const bcA = useRef<BroadcastChannel>(new BroadcastChannel(`A`));
   const loroARef = useRef<LoroDocType>(new LoroDoc());
@@ -183,6 +348,469 @@ export const BroadcastChannelExample = () => {
   return (
     <div>
       <Editor loro={loroARef.current} awareness={awarenessA.current} />
+    </div>
+  );
+};
+
+export const OfflineSyncWithHistory = () => {
+  const [dagInfo, setDagInfo] = useState<{
+    nodes: ViewDagNode[];
+    frontiers: string[];
+  }>({ nodes: [], frontiers: [] });
+
+  const [isAOnline, setIsAOnline] = useState(true);
+  const [isBOnline, setIsBOnline] = useState(true);
+
+  const loroARef = useRef<LoroDocType>(new LoroDoc());
+  const loroBRef = useRef<LoroDocType>(new LoroDoc());
+  
+  const idA = useMemo(() => loroARef.current.peerIdStr, []);
+  const idB = useMemo(() => loroBRef.current.peerIdStr, []);
+  
+  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
+  const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
+
+  const DagView: StoryFn<{ nodes: ViewDagNode[], frontiers: string[] }> = (args) => (
+    <div style={styles.historyCard}>
+      <h3 style={styles.historyTitle}>Operation History</h3>
+      <DagViewComponent {...args} />
+    </div>
+  );
+
+  useEffect(() => {
+    loroARef.current.setRecordTimestamp(true);
+    loroBRef.current.setRecordTimestamp(true);
+
+    // The changes of A are synchronized to B
+    const subscriptionA = loroARef.current.subscribe((event) => {
+      if (event.by === "local" && isAOnline && isBOnline) {        
+        loroARef.current.commit();
+
+        loroBRef.current.import(loroARef.current.export({
+          mode: "update",
+          from: loroBRef.current.oplogVersion(),
+        }));
+        
+        const updatedDagInfo = convertSyncStepsToNodes(loroARef.current);        
+        setDagInfo(updatedDagInfo);
+      }
+    });
+
+    // The changes of B are synchronized to A
+    const subscriptionB = loroBRef.current.subscribe((event) => {
+      if (event.by === "local" && isBOnline && isAOnline) {        
+        loroBRef.current.commit();
+
+        loroARef.current.import(loroBRef.current.export({
+          mode: "update",
+          from: loroARef.current.oplogVersion(),
+        }));
+        
+        const updatedDagInfo = convertSyncStepsToNodes(loroBRef.current);        
+        setDagInfo(updatedDagInfo);
+      }
+    });
+
+    // Cursor synchronization
+    awarenessA.current.addListener((_state, origin) => {
+      if (origin === "local" && isAOnline && isBOnline) {
+        awarenessB.current.apply(awarenessA.current.encode([idA]));
+      }
+    });
+
+    awarenessB.current.addListener((_state, origin) => {
+      if (origin === "local" && isBOnline && isAOnline) {
+        awarenessA.current.apply(awarenessB.current.encode([idB]));
+      }
+    });
+
+    return () => {
+      subscriptionA();
+      subscriptionB();
+    };
+  }, [isAOnline, isBOnline, idA, idB]);
+
+  // The synchronization logic goes online again
+  const syncWhenOnline = useCallback(() => {
+    if (isAOnline && isBOnline) {      
+      // Synchronize A to B first
+      const snapshotA = loroARef.current.export({ mode: "snapshot" });
+      loroBRef.current.import(snapshotA);
+      loroBRef.current.commit();
+      
+      // Then synchronize B to A
+      const snapshotB = loroBRef.current.export({ mode: "snapshot" });
+      loroARef.current.import(snapshotB);
+      loroARef.current.commit();
+      
+      const updatedDagInfo = convertSyncStepsToNodes(loroARef.current);      
+      setDagInfo(updatedDagInfo);
+    }
+  }, [isAOnline, isBOnline]);
+
+  useEffect(() => {
+    syncWhenOnline();
+  }, [isAOnline, isBOnline, syncWhenOnline]);
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.editorsContainer}>
+        <div style={styles.editorCard}>
+          <div style={styles.editorHeader}>
+            <h3 style={styles.editorTitle}>Editor A</h3>
+            <button 
+              onClick={() => setIsAOnline(!isAOnline)}
+              style={styles.statusButton(isAOnline)}
+            >
+              {isAOnline ? 'Online' : 'Offline'}
+            </button>
+          </div>
+          <div style={styles.editorContent}>
+            <Editor
+              loro={loroARef.current}
+              awareness={awarenessA.current}
+              containerId={loroARef.current.getMap("doc").id}
+            />
+          </div>
+        </div>
+        
+        <div style={styles.editorCard}>
+          <div style={styles.editorHeader}>
+            <h3 style={styles.editorTitle}>Editor B</h3>
+            <button 
+              onClick={() => setIsBOnline(!isBOnline)}
+              style={styles.statusButton(isBOnline)}
+            >
+              {isBOnline ? 'Online' : 'Offline'}
+            </button>
+          </div>
+          <div style={styles.editorContent}>
+            <Editor
+              loro={loroBRef.current}
+              awareness={awarenessB.current}
+              containerId={loroBRef.current.getMap("doc").id}
+            />
+          </div>
+        </div>
+      </div>
+      
+      <DagView nodes={dagInfo.nodes} frontiers={dagInfo.frontiers} />
+    </div>
+  );
+};
+
+export const MultiOfflineSyncWithHistory = () => {
+  const [dagInfo, setDagInfo] = useState<{
+    nodes: ViewDagNode[];
+    frontiers: string[];
+  }>({ nodes: [], frontiers: [] });
+
+  const [isAOnline, setIsAOnline] = useState(true);
+  const [isBOnline, setIsBOnline] = useState(true);
+  const [isCOnline, setIsCOnline] = useState(true);
+  const [isDOnline, setIsDOnline] = useState(true);
+  const [isEOnline, setIsEOnline] = useState(true);
+
+  const loroARef = useRef<LoroDocType>(new LoroDoc());
+  const loroBRef = useRef<LoroDocType>(new LoroDoc());
+  const loroCRef = useRef<LoroDocType>(new LoroDoc());
+  const loroDRef = useRef<LoroDocType>(new LoroDoc());
+  const loroERef = useRef<LoroDocType>(new LoroDoc());
+  
+  const idA = useMemo(() => loroARef.current.peerIdStr, []);
+  const idB = useMemo(() => loroBRef.current.peerIdStr, []);
+  const idC = useMemo(() => loroCRef.current.peerIdStr, []);
+  const idD = useMemo(() => loroDRef.current.peerIdStr, []);
+  const idE = useMemo(() => loroERef.current.peerIdStr, []);
+  
+  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
+  const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
+  const awarenessC = useRef<CursorAwareness>(new CursorAwareness(idC));
+  const awarenessD = useRef<CursorAwareness>(new CursorAwareness(idD));
+  const awarenessE = useRef<CursorAwareness>(new CursorAwareness(idE));
+
+  const DagTemplate: StoryFn<{ nodes: ViewDagNode[], frontiers: string[] }> = (args) => (
+    <div style={styles.historyCard}>
+      <h3 style={styles.historyTitle}>Operation History</h3>
+      <DagViewComponent {...args} />
+    </div>
+  );
+
+  const DagView = DagTemplate.bind({});
+  DagView.args = {
+    nodes: dagInfo.nodes,
+    frontiers: dagInfo.frontiers,
+  };
+
+  useEffect(() => {
+    loroARef.current.setRecordTimestamp(true);
+    loroBRef.current.setRecordTimestamp(true);
+    loroCRef.current.setRecordTimestamp(true);
+    loroDRef.current.setRecordTimestamp(true);
+    loroERef.current.setRecordTimestamp(true);
+
+    const subscriptions = [
+      // Editor A changes
+      loroARef.current.subscribe((event) => {
+        if (event.by === "local" && isAOnline) {
+          loroARef.current.commit();
+          const updateBytes = loroARef.current.export({ mode: "update" });
+          
+          if (isBOnline) loroBRef.current.import(updateBytes);
+          if (isCOnline) loroCRef.current.import(updateBytes);
+          if (isDOnline) loroDRef.current.import(updateBytes);
+          if (isEOnline) loroERef.current.import(updateBytes);
+          
+          const updatedDagInfo = convertSyncStepsToNodes(loroARef.current);
+          setDagInfo(updatedDagInfo);
+        }
+      }),
+      // Editor B changes
+      loroBRef.current.subscribe((event) => {
+        if (event.by === "local" && isBOnline) {
+          loroBRef.current.commit();
+          const updateBytes = loroBRef.current.export({ mode: "update" });
+          
+          if (isAOnline) loroARef.current.import(updateBytes);
+          if (isCOnline) loroCRef.current.import(updateBytes);
+          if (isDOnline) loroDRef.current.import(updateBytes);
+          if (isEOnline) loroERef.current.import(updateBytes);
+          
+          const updatedDagInfo = convertSyncStepsToNodes(loroBRef.current);
+          setDagInfo(updatedDagInfo);
+        }
+      }),
+      // Editor C changes
+      loroCRef.current.subscribe((event) => {
+        if (event.by === "local" && isCOnline) {
+          loroCRef.current.commit();
+          const updateBytes = loroCRef.current.export({ mode: "update" });
+          
+          if (isAOnline) loroARef.current.import(updateBytes);
+          if (isBOnline) loroBRef.current.import(updateBytes);
+          if (isDOnline) loroDRef.current.import(updateBytes);
+          if (isEOnline) loroERef.current.import(updateBytes);
+          
+          const updatedDagInfo = convertSyncStepsToNodes(loroCRef.current);
+          setDagInfo(updatedDagInfo);
+        }
+      }),
+      // Editor D changes
+      loroDRef.current.subscribe((event) => {
+        if (event.by === "local" && isDOnline) {
+          loroDRef.current.commit();
+          const updateBytes = loroDRef.current.export({ mode: "update" });
+          
+          if (isAOnline) loroARef.current.import(updateBytes);
+          if (isBOnline) loroBRef.current.import(updateBytes);
+          if (isCOnline) loroCRef.current.import(updateBytes);
+          if (isEOnline) loroERef.current.import(updateBytes);
+          
+          const updatedDagInfo = convertSyncStepsToNodes(loroDRef.current);
+          setDagInfo(updatedDagInfo);
+        }
+      }),
+      // Editor E changes
+      loroERef.current.subscribe((event) => {
+        if (event.by === "local" && isEOnline) {
+          loroERef.current.commit();
+          const updateBytes = loroERef.current.export({ mode: "update" });
+          
+          if (isAOnline) loroARef.current.import(updateBytes);
+          if (isBOnline) loroBRef.current.import(updateBytes);
+          if (isCOnline) loroCRef.current.import(updateBytes);
+          if (isDOnline) loroDRef.current.import(updateBytes);
+          
+          const updatedDagInfo = convertSyncStepsToNodes(loroERef.current);
+          setDagInfo(updatedDagInfo);
+        }
+      })
+    ];
+
+    // Cursor awareness
+    const setupAwareness = (from: CursorAwareness, fromId: string, isFromOnline: boolean) => {
+      from.addListener((_state, origin) => {
+        if (origin === "local" && isFromOnline) {
+          const encoded = from.encode([`${parseInt(fromId)}`]);
+          if (isAOnline) awarenessA.current.apply(encoded);
+          if (isBOnline) awarenessB.current.apply(encoded);
+          if (isCOnline) awarenessC.current.apply(encoded);
+          if (isDOnline) awarenessD.current.apply(encoded);
+          if (isEOnline) awarenessE.current.apply(encoded);
+        }
+      });
+    };
+
+    setupAwareness(awarenessA.current, idA, isAOnline);
+    setupAwareness(awarenessB.current, idB, isBOnline);
+    setupAwareness(awarenessC.current, idC, isCOnline);
+    setupAwareness(awarenessD.current, idD, isDOnline);
+    setupAwareness(awarenessE.current, idE, isEOnline);
+
+    return () => {
+      subscriptions.forEach(unsub => unsub());
+    };
+  }, [isAOnline, isBOnline, isCOnline, isDOnline, isEOnline, idA, idB, idC, idD, idE]);
+
+const syncWhenOnline = useCallback((editorRef: React.RefObject<LoroDocType>, isOnline: boolean) => {
+  if (!isOnline) return;
+
+  const otherOnlineEditors = [
+    { ref: loroARef, isOnline: isAOnline },
+    { ref: loroBRef, isOnline: isBOnline },
+    { ref: loroCRef, isOnline: isCOnline },
+    { ref: loroDRef, isOnline: isDOnline },
+    { ref: loroERef, isOnline: isEOnline }
+  ].filter(editor => 
+    editor.isOnline && editor.ref.current !== editorRef.current
+  );
+
+  otherOnlineEditors.forEach(({ ref: otherRef }) => {
+    // Sync other editors to the current editor first
+    const otherSnapshot = otherRef.current.export({ mode: "update" });
+    editorRef.current?.import(otherSnapshot);
+    editorRef.current?.commit();
+
+    // Then synchronize the current editor to another editor
+    const currentSnapshot = editorRef.current?.export({ mode: "update" });
+    if (currentSnapshot) {
+      otherRef.current.import(currentSnapshot);
+      otherRef.current.commit();
+    }
+  });
+
+  if (editorRef.current) {
+    const updatedDagInfo = convertSyncStepsToNodes(editorRef.current);
+    setDagInfo(updatedDagInfo);
+  }
+
+}, [isAOnline, isBOnline, isCOnline, isDOnline, isEOnline]);
+
+// Call synchronization when state changes
+useEffect(() => {
+  if (isAOnline) syncWhenOnline(loroARef, isAOnline);
+}, [isAOnline, syncWhenOnline]);
+
+useEffect(() => {
+  if (isBOnline) syncWhenOnline(loroBRef, isBOnline);
+}, [isBOnline, syncWhenOnline]);
+
+useEffect(() => {
+  if (isCOnline) syncWhenOnline(loroCRef, isCOnline);
+}, [isCOnline, syncWhenOnline]);
+
+useEffect(() => {
+  if (isDOnline) syncWhenOnline(loroDRef, isDOnline);
+}, [isDOnline, syncWhenOnline]);
+
+useEffect(() => {
+  if (isEOnline) syncWhenOnline(loroERef, isEOnline);
+}, [isEOnline, syncWhenOnline]);
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.editorsContainer}>
+        {/* Editor A */}
+        <div style={styles.editorCard}>
+          <div style={styles.editorHeader}>
+            <h3 style={styles.editorTitle}>Editor A</h3>
+            <button 
+              onClick={() => setIsAOnline(!isAOnline)}
+              style={styles.statusButton(isAOnline)}
+            >
+              {isAOnline ? 'Online' : 'Offline'}
+            </button>
+          </div>
+          <div style={styles.editorContent}>
+            <Editor
+              loro={loroARef.current}
+              awareness={awarenessA.current}
+              containerId={loroARef.current.getMap("doc").id}
+            />
+          </div>
+        </div>
+        
+        {/* Editor B */}
+        <div style={styles.editorCard}>
+          <div style={styles.editorHeader}>
+            <h3 style={styles.editorTitle}>Editor B</h3>
+            <button 
+              onClick={() => setIsBOnline(!isBOnline)}
+              style={styles.statusButton(isBOnline)}
+            >
+              {isBOnline ? 'Online' : 'Offline'}
+            </button>
+          </div>
+          <div style={styles.editorContent}>
+            <Editor
+              loro={loroBRef.current}
+              awareness={awarenessB.current}
+              containerId={loroBRef.current.getMap("doc").id}
+            />
+          </div>
+        </div>
+
+        {/* Editor C */}
+        <div style={styles.editorCard}>
+          <div style={styles.editorHeader}>
+            <h3 style={styles.editorTitle}>Editor C</h3>
+            <button 
+              onClick={() => setIsCOnline(!isCOnline)}
+              style={styles.statusButton(isCOnline)}
+            >
+              {isCOnline ? 'Online' : 'Offline'}
+            </button>
+          </div>
+          <div style={styles.editorContent}>
+            <Editor
+              loro={loroCRef.current}
+              awareness={awarenessC.current}
+              containerId={loroCRef.current.getMap("doc").id}
+            />
+          </div>
+        </div>
+
+        {/* Editor D */}
+        <div style={styles.editorCard}>
+          <div style={styles.editorHeader}>
+            <h3 style={styles.editorTitle}>Editor D</h3>
+            <button 
+              onClick={() => setIsDOnline(!isDOnline)}
+              style={styles.statusButton(isDOnline)}
+            >
+              {isDOnline ? 'Online' : 'Offline'}
+            </button>
+          </div>
+          <div style={styles.editorContent}>
+            <Editor
+              loro={loroDRef.current}
+              awareness={awarenessD.current}
+              containerId={loroDRef.current.getMap("doc").id}
+            />
+          </div>
+        </div>
+
+        {/* Editor E */}
+        <div style={styles.editorCard}>
+          <div style={styles.editorHeader}>
+            <h3 style={styles.editorTitle}>Editor E</h3>
+            <button 
+              onClick={() => setIsEOnline(!isEOnline)}
+              style={styles.statusButton(isEOnline)}
+            >
+              {isEOnline ? 'Online' : 'Offline'}
+            </button>
+          </div>
+          <div style={styles.editorContent}>
+            <Editor
+              loro={loroERef.current}
+              awareness={awarenessE.current}
+              containerId={loroERef.current.getMap("doc").id}
+            />
+          </div>
+        </div>
+      </div>
+        <DagView nodes={dagInfo.nodes} frontiers={dagInfo.frontiers} />
     </div>
   );
 };
