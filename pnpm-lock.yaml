@@ -13,7 +13,7 @@ importers:
         version: 0.2.93
       loro-crdt:
         specifier: ^1.0.7
-        version: 1.0.7
+        version: 1.2.7
     devDependencies:
       '@rollup/plugin-node-resolve':
         specifier: ^15.0.1
@@ -64,8 +64,8 @@ importers:
   examples/stories:
     dependencies:
       loro-crdt:
-        specifier: ^1.0.7
-        version: 1.0.7
+        specifier: ^1.2.7
+        version: 1.2.7
       loro-prosemirror:
         specifier: workspace:*
         version: link:../..
@@ -1667,7 +1667,7 @@ packages:
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
   '@types/lodash@4.17.13':
-    resolution: {integrity: sha512-lfx+dftrEZcdBPczf9d0Qv0x+j/rfNCMuC6OcfXmO8gkfeNAY88PgKUbvG56whcN23gc27yenwF6oJZXGFpYxg==, tarball: https://registry.npmmirror.com/@types/lodash/-/lodash-4.17.13.tgz}
+    resolution: {integrity: sha512-lfx+dftrEZcdBPczf9d0Qv0x+j/rfNCMuC6OcfXmO8gkfeNAY88PgKUbvG56whcN23gc27yenwF6oJZXGFpYxg==}
 
   '@types/mdx@2.0.13':
     resolution: {integrity: sha512-+OWZQfAYyio6YkJb3HLxDrvnx6SWWDbC0zVPfBRzUk0/nqoDyf6dNxQi3eArPe8rJ473nobTMQ/8Zk+LxJ+Yuw==}
@@ -2907,11 +2907,8 @@ packages:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
 
-  loro-crdt@1.0.7:
-    resolution: {integrity: sha512-BD9qx3dQdqhEegOTEYdYo2GvRoYAeZFAfwcJLDtNRKo20y/1dUsRmzAvtLzZI/cdcRg+DkpBBLr+wcL4jRYUNw==}
-
-  loro-wasm@1.0.7:
-    resolution: {integrity: sha512-WFIpGGzc6I7zRMDoRGxa3AHhno7gVnOgwqcrTfmpKWOtktZQ7BvhIV4kYgsdyuIBcMSrQEJTfOY/80xQSjUKTw==}
+  loro-crdt@1.2.7:
+    resolution: {integrity: sha512-eqVxUtLr7YBv5QaSW4obs01HIMzzJGfBC6MVnKHzMAEdaRitTP6Dj+BRvLFPqLEJthRtjohKez8wZgwzAUDiTg==}
 
   loupe@2.3.7:
     resolution: {integrity: sha512-zSMINGVYkdpYSOBmLi0D1Uo7JU9nVdQKrHxC8eYlV+9YKK9WePqAlL7lSlorG/U2Fw1w0hTBmaa/jrQ3UbPHtA==}
@@ -7109,11 +7106,7 @@ snapshots:
     dependencies:
       js-tokens: 4.0.0
 
-  loro-crdt@1.0.7:
-    dependencies:
-      loro-wasm: 1.0.7
-
-  loro-wasm@1.0.7: {}
+  loro-crdt@1.2.7: {}
 
   loupe@2.3.7:
     dependencies:
