@@ -1,7 +1,8 @@
 import { defineConfig } from "rollup";
 import dts from "rollup-plugin-dts";
 import esbuild from "rollup-plugin-esbuild";
-import packageJson from "./package.json" assert { type: "json" };
+import { readFileSync } from "fs";
+const packageJson = JSON.parse(readFileSync("./package.json"));
 
 const name = packageJson.main.replace(/\.js$/, "");
 
