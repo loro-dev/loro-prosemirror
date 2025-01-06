@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.2.1](https://github.com/loro-dev/loro-prosemirror/compare/v0.2.0...v0.2.1) (2025-01-06)
+
+
+### Features
+
+* Editor history visualization ([#24](https://github.com/loro-dev/loro-prosemirror/issues/24)) ([74cbe41](https://github.com/loro-dev/loro-prosemirror/commit/74cbe41a883d0c9fd3e9642dd0a3fe962f1496a8))
+
+
+### Bug Fixes
+
+* deps ([cb9c334](https://github.com/loro-dev/loro-prosemirror/commit/cb9c334ec1b9de792e3113ce5208a02bbc995710))
+
 ## [0.2.0](https://github.com/loro-dev/loro-prosemirror/compare/v0.1.0...v0.2.0) (2024-10-31)
 
 
