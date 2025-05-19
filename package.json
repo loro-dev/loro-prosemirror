@@ -33,13 +33,13 @@
     "lib0": "^0.2.42"
   },
   "peerDependencies": {
-    "loro-crdt": "^1.0.7",
+    "loro-crdt": "^1.4.0",
     "prosemirror-model": "^1.18.1",
     "prosemirror-state": "^1.4.1",
     "prosemirror-view": "^1.28.0"
   },
   "devDependencies": {
-    "loro-crdt": "^1.5.5",
+    "loro-crdt": "^1.4.0",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@typescript-eslint/parser": "^7.4.0",
     "@vitest/coverage-v8": "^1.4.0",

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Meta, StoryFn } from "@storybook/react";
 
 import { Editor } from "./Editor";
@@ -442,12 +443,14 @@ export const OfflineSyncWithHistory = () => {
       }
     };
     awarenessB.current.addListener(listenerB);
+    const a = awarenessA.current;
+    const b = awarenessA.current;
 
     return () => {
       subscriptionA();
       subscriptionB();
-      awarenessA.current?.removeListener(listenerA);
-      awarenessB.current?.removeListener(listenerB);
+      a.removeListener(listenerA);
+      b.removeListener(listenerB);
     };
   }, [isAOnline, isBOnline, idA, idB]);
 
