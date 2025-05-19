@@ -39,6 +39,7 @@
     "prosemirror-view": "^1.28.0"
   },
   "devDependencies": {
+    "loro-crdt": "^1.5.5",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@typescript-eslint/parser": "^7.4.0",
     "@vitest/coverage-v8": "^1.4.0",

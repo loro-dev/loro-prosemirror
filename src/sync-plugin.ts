@@ -11,6 +11,7 @@ import {
   Plugin,
   PluginKey,
   type StateField,
+  TextSelection,
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 
@@ -24,6 +25,10 @@ import {
   updateLoroToPmState,
 } from "./lib";
 import { configLoroTextStyle } from "./text-style";
+import {
+  convertPmSelectionToCursors,
+  cursorToAbsolutePosition,
+} from "./cursor-plugin";
 
 export const loroSyncPluginKey = new PluginKey<LoroSyncPluginState>(
   "loro-sync",
@@ -136,8 +141,7 @@ function init(view: EditorView) {
   docSubscription?.();
 
   if (state.containerId) {
-    docSubscription = state.doc
-      .getContainerById(state.containerId)
+    docSubscription = state.doc!.getContainerById(state.containerId)!
       .subscribe((event) => {
         updateNodeOnLoroEvent(view, event);
       });
@@ -201,13 +205,45 @@ function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
       : (state.doc as LoroDocType).getMap(ROOT_DOC_KEY),
     mapping,
   );
-  const tr = view.state.tr.replace(
+  const { anchor, focus } = convertPmSelectionToCursors(
+    view.state.doc,
+    view.state.selection,
+    state,
+  );
+
+  let tr = view.state.tr.replace(
     0,
     view.state.doc.content.size,
     new Slice(Fragment.from(node), 0, 0),
   );
+
   tr.setMeta(loroSyncPluginKey, {
     type: "non-local-updates",
   });
   view.dispatch(tr);
+  Promise.resolve().then(() => {
+    if (anchor && focus) {
+      const state = loroSyncPluginKey.getState(
+        view.state,
+      ) as LoroSyncPluginState;
+      const anchorPos = cursorToAbsolutePosition(
+        anchor,
+        state.doc,
+        state.mapping,
+      )[0];
+      const focusPos = focus &&
+        cursorToAbsolutePosition(
+          focus,
+          state.doc,
+          state.mapping,
+        )[0];
+      const selection = TextSelection.create(
+        view.state.tr.doc,
+        anchorPos,
+        focusPos ?? undefined,
+      );
+      const tr = view.state.tr.setSelection(selection);
+      view.dispatch(tr);
+    }
+  });
 }
