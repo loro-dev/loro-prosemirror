@@ -334,7 +334,11 @@ export function cursorToAbsolutePosition(
   let loroNode: LoroNode | undefined;
   let update: Cursor | undefined;
   if (containerId.endsWith("List")) {
-    const loroList = doc.getList(containerId as any);
+    const loroList = doc.getContainerById(containerId) as LoroList | undefined;
+    if (!loroList) {
+      return [1, undefined];
+    }
+
     const parentNode = loroList.parent();
     if (!parentNode) {
       return [1, undefined];

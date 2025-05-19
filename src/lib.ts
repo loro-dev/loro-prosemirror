@@ -660,9 +660,9 @@ export function clearChangedNodes(
 ) {
   for (const e of event.events) {
     const obj = doc.getContainerById(e.target);
-    mapping.delete(obj.id);
+    mapping.delete(obj!.id);
 
-    let parentObj = obj.parent();
+    let parentObj = obj!.parent();
     while (!!parentObj) {
       mapping.delete(parentObj!.id);
       parentObj = parentObj!.parent();
