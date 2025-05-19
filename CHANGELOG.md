@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.2.2](https://github.com/loro-dev/loro-prosemirror/compare/v0.2.1...v0.2.2) (2025-05-19)
+
+
+### Bug Fixes
+
+* selection should not change after applying remote updates ([#29](https://github.com/loro-dev/loro-prosemirror/issues/29)) ([e2ddccd](https://github.com/loro-dev/loro-prosemirror/commit/e2ddccdf0d6d427491254977f4066c7e715a48e2))
+
 ## [0.2.1](https://github.com/loro-dev/loro-prosemirror/compare/v0.2.0...v0.2.1) (2025-01-06)
 
 
