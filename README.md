@@ -4,7 +4,7 @@
 - Sync cursors with Loro's Awareness and
   [Cursor](https://loro.dev/docs/tutorial/cursor)
 - Undo/Redo in collaborative editing
-- [🎨 Try it online](https://6661e86e215da40180d90507-ansgznbrmy.chromatic.com)
+- [🎨 Try it online](https://main--6661e86e215da40180d90507.chromatic.com)
 
 ```ts
 import {
