@@ -398,6 +398,9 @@ export const OfflineSyncWithHistory = () => {
   useEffect(() => {
     loroARef.current.setRecordTimestamp(true);
     loroBRef.current.setRecordTimestamp(true);
+    if (!isAOnline || !isBOnline) {
+      return;
+    }
 
     // The changes of A are synchronized to B
     const subscriptionA = loroARef.current.subscribe((event) => {
