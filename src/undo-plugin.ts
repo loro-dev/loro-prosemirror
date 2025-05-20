@@ -1,5 +1,5 @@
 import type { Cursor } from "loro-crdt";
-import { Loro, UndoManager } from "loro-crdt";
+import { LoroDoc, UndoManager } from "loro-crdt";
 import {
   type Command,
   EditorState,
@@ -17,7 +17,7 @@ import { loroSyncPluginKey } from "./sync-plugin";
 import { configLoroTextStyle } from "./text-style";
 
 export interface LoroUndoPluginProps {
-  doc: Loro;
+  doc: LoroDoc;
   undoManager?: UndoManager;
 }
 
@@ -29,6 +29,7 @@ interface LoroUndoPluginState {
   undoManager: UndoManager;
   canUndo: boolean;
   canRedo: boolean;
+  isUndoing: { current: boolean };
 }
 
 type Cursors = { anchor: Cursor | null; focus: Cursor | null };
@@ -49,6 +50,7 @@ export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
           undoManager,
           canUndo: undoManager.canUndo(),
           canRedo: undoManager.canRedo(),
+          isUndoing: { current: false },
         };
       },
       apply: (tr, state, oldEditorState, newEditorState) => {
@@ -142,8 +144,7 @@ export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
               loroState.doc,
               loroState.mapping,
             )[0];
-            const focusPos =
-              focus &&
+            const focusPos = focus &&
               cursorToAbsolutePosition(
                 focus,
                 loroState.doc,
@@ -185,6 +186,11 @@ export const undo: Command = (state, dispatch): boolean => {
   if (!undoState) {
     return false;
   }
+
+  undoState.isUndoing.current = true;
+  setTimeout(() => {
+    undoState.isUndoing.current = false;
+  }, 0);
   if (dispatch) {
     return undoState.undoManager.undo();
   } else {
@@ -197,6 +203,10 @@ export const redo: Command = (state, dispatch): boolean => {
   if (!undoState) {
     return false;
   }
+  undoState.isUndoing.current = true;
+  setTimeout(() => {
+    undoState.isUndoing.current = false;
+  }, 0);
   if (dispatch) {
     return undoState.undoManager.redo();
   } else {

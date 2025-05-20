@@ -29,6 +29,7 @@ import {
   convertPmSelectionToCursors,
   cursorToAbsolutePosition,
 } from "./cursor-plugin";
+import { loroUndoPluginKey } from "./undo-plugin";
 
 export const loroSyncPluginKey = new PluginKey<LoroSyncPluginState>(
   "loro-sync",
@@ -85,6 +86,8 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
         const meta = tr.getMeta(
           loroSyncPluginKey,
         ) as PluginTransactionType | null;
+        const undoState = loroUndoPluginKey.getState(oldEditorState);
+
         if (meta?.type === "non-local-updates") {
           state.changedBy = "import";
         } else {
@@ -92,12 +95,14 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
         }
         switch (meta?.type) {
           case "doc-changed":
-            updateLoroToPmState(
-              state.doc as LoroDocType,
-              state.mapping,
-              newEditorState,
-              props.containerId,
-            );
+            if (!(undoState?.isUndoing.current)) {
+              updateLoroToPmState(
+                state.doc as LoroDocType,
+                state.mapping,
+                newEditorState,
+                props.containerId,
+              );
+            }
             break;
           case "update-state":
             state = { ...state, ...meta.state };
