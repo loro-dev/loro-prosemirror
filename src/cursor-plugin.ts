@@ -282,7 +282,7 @@ function absolutePositionToCursor(
   const loroId = WEAK_NODE_TO_LORO_CONTAINER_MAPPING.get(nodeParent) ??
     getByValue(mapping, nodeParent);
   if (!loroId) {
-    if (nodeParent.nodeSize > 4) {
+    if (anchor > 1) {
       console.error("Cannot find the loroNode");
     }
     return;
@@ -346,6 +346,7 @@ export function cursorToAbsolutePosition(
 
     targetChildId = parentNode.id;
     loroNode = parentNode.parent()?.parent() as LoroNode | undefined;
+    index = 0;
   } else {
     const loroText = doc.getText(containerId);
     const pos = doc.getCursorPos(cursor);

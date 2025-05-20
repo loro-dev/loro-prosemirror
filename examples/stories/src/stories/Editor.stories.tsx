@@ -2,13 +2,27 @@
 import type { Meta, StoryFn } from "@storybook/react";
 
 import { Editor } from "./Editor";
-import { LoroDoc, VersionVector } from "loro-crdt";
+import { LoroDoc, VersionVector, PeerID } from "loro-crdt";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { CursorAwareness, LoroDocType } from "loro-prosemirror";
 import { DagViewComponent } from './DagView';
 import type { ViewDagNode } from "./DagView";
 import { convertSyncStepsToNodes } from "./editor-history";
 import { styles } from './styles/CollaborativeEditor.styles';
+
+
+function applyCustom(awareness: CursorAwareness, peerId: PeerID, payload: {
+  anchor: Uint8Array | null;
+  focus: Uint8Array | null;
+  user: {
+    name: string;
+    color: string;
+  } | null;
+}) {
+  const a = new CursorAwareness(peerId);
+  a.setLocalState(payload);
+  awareness.apply(a.encode([peerId]));
+}
 
 const meta = {
   title: "Editor/Basic",
@@ -25,8 +39,41 @@ export const Basic = () => {
   const loroARef = useRef<LoroDocType>(new LoroDoc());
   const idA = loroARef.current.peerIdStr;
   const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
+
+  // Add debug cursor functionality
+  const [debugPeerIdA, setDebugPeerIdA] = useState<PeerID | null>(null);
+
+  const createDebugCursor = useCallback(() => {
+    const currentState = awarenessA.current.getLocalState();
+    if (!currentState?.anchor || !currentState?.focus) return;
+
+    const debugId = debugPeerIdA || Math.random().toString(10).substring(2, 15) as PeerID;
+    if (!debugPeerIdA) setDebugPeerIdA(debugId);
+
+    applyCustom(awarenessA.current, debugId, {
+      user: { name: "Debug Cursor", color: "#ff00ff" },
+      anchor: currentState.anchor,
+      focus: currentState.focus,
+    });
+  }, [debugPeerIdA]);
+
   return (
     <div>
+      <div style={{ marginBottom: '10px' }}>
+        <button
+          onMouseDownCapture={createDebugCursor}
+          style={{
+            padding: '5px 10px',
+            backgroundColor: '#ff00ff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Add Debug Cursor
+        </button>
+      </div>
       <Editor loro={loroARef.current} awareness={awarenessA.current} />
     </div>
   );
@@ -142,6 +189,39 @@ export const Sync = () => {
   const loroBRef = useRef<LoroDocType>(new LoroDoc());
   const idB = loroBRef.current.peerIdStr;
   const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
+
+  // Add debug cursor functionality
+  const [debugPeerIdA, setDebugPeerIdA] = useState<PeerID | null>(null);
+  const [debugPeerIdB, setDebugPeerIdB] = useState<PeerID | null>(null);
+
+  const createDebugCursorA = useCallback(() => {
+    const currentState = awarenessA.current.getLocalState();
+    if (!currentState?.anchor || !currentState?.focus) return;
+
+    const debugId = debugPeerIdA || Math.random().toString(10).substring(2, 15) as PeerID;
+    if (!debugPeerIdA) setDebugPeerIdA(debugId as PeerID);
+
+    applyCustom(awarenessA.current, debugId, {
+      user: { name: "Debug A", color: "#ff00ff" },
+      anchor: currentState.anchor,
+      focus: currentState.focus
+    });
+  }, [debugPeerIdA]);
+
+  const createDebugCursorB = useCallback(() => {
+    const currentState = awarenessB.current.getLocalState();
+    if (!currentState?.anchor || !currentState?.focus) return;
+
+    const debugId = debugPeerIdB || Math.random().toString(10).substring(2, 15) as PeerID;
+    if (!debugPeerIdB) setDebugPeerIdB(debugId as PeerID);
+
+    applyCustom(awarenessB.current, debugId, {
+      user: { name: "Debug B", color: "#00ffff" },
+      anchor: currentState.anchor,
+      focus: currentState.focus
+    });
+  }, [debugPeerIdB]);
+
   useEffect(() => {
     loroARef.current.subscribe((event) => {
       if (event.by === "local") {
@@ -179,6 +259,34 @@ export const Sync = () => {
 
   return (
     <div>
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '10px' }}>
+        <button
+          onMouseDownCapture={createDebugCursorA}
+          style={{
+            padding: '5px 10px',
+            backgroundColor: '#ff00ff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Debug Cursor A
+        </button>
+        <button
+          onMouseDownCapture={createDebugCursorB}
+          style={{
+            padding: '5px 10px',
+            backgroundColor: '#ff00ff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Debug Cursor B
+        </button>
+      </div>
       <Editor
         loro={loroARef.current}
         awareness={awarenessA.current}
@@ -362,6 +470,10 @@ export const OfflineSyncWithHistory = () => {
   const [isAOnline, setIsAOnline] = useState(true);
   const [isBOnline, setIsBOnline] = useState(true);
 
+  // Create a separate "debug" peer ID for visualization
+  const [debugPeerIdA, setDebugPeerIdA] = useState<PeerID | null>(null);
+  const [debugPeerIdB, setDebugPeerIdB] = useState<PeerID | null>(null);
+
   const loroARef = useRef<LoroDocType>(new LoroDoc());
   const loroBRef = useRef<LoroDocType>(new LoroDoc());
 
@@ -377,6 +489,42 @@ export const OfflineSyncWithHistory = () => {
       <DagViewComponent {...args} />
     </div>
   );
+
+  // Function to create debug cursor for Editor A
+  const createDebugCursorA = useCallback(() => {
+    // Get current cursor information
+    const currentState = awarenessA.current.getLocalState();
+    if (!currentState?.anchor || !currentState?.focus) return;
+
+    // Create a unique debug peer ID if not exists
+    const debugId = debugPeerIdA || Math.random().toString(10).substring(2, 15) as PeerID;
+    if (!debugPeerIdA) setDebugPeerIdA(debugId as PeerID);
+
+    // Apply a debug cursor using current position but different user
+    applyCustom(awarenessA.current, debugId, {
+      user: { name: "Debug A", color: "#ff00ff" },
+      anchor: currentState.anchor,
+      focus: currentState.focus
+    });
+  }, [debugPeerIdA]);
+
+  // Function to create debug cursor for Editor B
+  const createDebugCursorB = useCallback(() => {
+    // Get current cursor information
+    const currentState = awarenessB.current.getLocalState();
+    if (!currentState?.anchor || !currentState?.focus) return;
+
+    // Create a unique debug peer ID if not exists
+    const debugId = debugPeerIdB || Math.random().toString(10).substring(2, 15) as PeerID;
+    if (!debugPeerIdB) setDebugPeerIdB(debugId as PeerID);
+
+    // Apply a debug cursor using current position but different user
+    applyCustom(awarenessB.current, debugId, {
+      user: { name: "Debug B", color: "#00ffff" },
+      anchor: currentState.anchor,
+      focus: currentState.focus
+    });
+  }, [debugPeerIdB]);
 
   // Add keyboard shortcut to toggle all peers online/offline
   useEffect(() => {
@@ -485,13 +633,22 @@ export const OfflineSyncWithHistory = () => {
         <div style={styles.editorCard}>
           <div style={styles.editorHeader}>
             <h3 style={styles.editorTitle}>Editor A</h3>
-            <button
-              onClick={() => setIsAOnline(!isAOnline)}
-              style={styles.statusButton(isAOnline)}
-              title="Toggle online/offline, Meta+Alt+O"
-            >
-              {isAOnline ? 'Online' : 'Offline'}
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onMouseDownCapture={createDebugCursorA}
+                style={{ ...styles.statusButton(true), backgroundColor: '#ff00ff' }}
+                title="Add debug cursor at current position"
+              >
+                Debug Cursor
+              </button>
+              <button
+                onClick={() => setIsAOnline(!isAOnline)}
+                style={styles.statusButton(isAOnline)}
+                title="Toggle online/offline, Meta+Alt+O"
+              >
+                {isAOnline ? 'Online' : 'Offline'}
+              </button>
+            </div>
           </div>
           <div style={styles.editorContent}>
             <Editor
@@ -505,13 +662,22 @@ export const OfflineSyncWithHistory = () => {
         <div style={styles.editorCard}>
           <div style={styles.editorHeader}>
             <h3 style={styles.editorTitle}>Editor B</h3>
-            <button
-              onClick={() => setIsBOnline(!isBOnline)}
-              style={styles.statusButton(isBOnline)}
-              title="Toggle online/offline, Meta+Alt+O"
-            >
-              {isBOnline ? 'Online' : 'Offline'}
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onMouseDownCapture={createDebugCursorB}
+                style={{ ...styles.statusButton(true), backgroundColor: '#ff00ff' }}
+                title="Add debug cursor at current position"
+              >
+                Debug Cursor
+              </button>
+              <button
+                onClick={() => setIsBOnline(!isBOnline)}
+                style={styles.statusButton(isBOnline)}
+                title="Toggle online/offline, Meta+Alt+O"
+              >
+                {isBOnline ? 'Online' : 'Offline'}
+              </button>
+            </div>
           </div>
           <div style={styles.editorContent}>
             <Editor

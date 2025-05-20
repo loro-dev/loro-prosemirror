@@ -308,17 +308,41 @@ function eqNodeName(obj: LoroMap, node: Node | Node[]): boolean {
   return !Array.isArray(node) && obj.get("nodeName") === node.type.name;
 }
 
+/**
+ * Checks if two nodes (or arrays of nodes) are equal.
+ * - If both are the same object, returns true.
+ * - If both are single nodes, uses their .eq() method.
+ * - If both are arrays, checks that they have the same length and each corresponding node is equal.
+ */
 function eqMappedNode(
   mapped: Node | Node[] | undefined,
   node: Node | Node[] | undefined,
-) {
-  return (
-    mapped === node ||
-    (Array.isArray(mapped) &&
-      Array.isArray(node) &&
-      mapped.length === node.length &&
-      mapped.every((a, i) => node[i].eq(a)))
-  );
+): boolean {
+  // If both are the same reference, they are equal
+  if (mapped === node) {
+    return true;
+  }
+
+  // If both are single nodes (not arrays), compare using .eq()
+  if (!Array.isArray(mapped) && !Array.isArray(node) && node) {
+    return mapped?.eq(node) ?? false;
+  }
+
+  // If both are arrays, check length and each element
+  if (Array.isArray(mapped) && Array.isArray(node)) {
+    if (mapped.length !== node.length) {
+      return false;
+    }
+    for (let i = 0; i < mapped.length; i++) {
+      if (!node[i].eq(mapped[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Otherwise, not equal
+  return false;
 }
 
 function normalizeNodeContent(node: Node): (Node | Node[])[] {
@@ -506,22 +530,19 @@ export function updateLoroMapChildren(
   for (; left < minLength; left++) {
     const leftLoro = loroChildren.get(left);
     const leftNode = nodeChildren[left];
-    if (
-      leftLoro == null ||
-      leftNode == null ||
-      (isContainer(leftLoro) &&
-        !eqMappedNode(mapping.get(leftLoro.id), leftNode))
-    ) {
+    if (leftLoro == null || leftNode == null) {
+      break;
+    }
+
+    if (isContainer(leftLoro) && mapping.get(leftLoro.id) !== leftNode) {
       if (
-        leftLoro != null &&
-        leftNode != null &&
-        isContainer(leftLoro) &&
+        eqMappedNode(mapping.get(leftLoro.id), leftNode) ||
         eqLoroObjNode(leftLoro, leftNode)
       ) {
-        // If they actually equal but have different pointers, update the mapping
-        // update mapping
-        WEAK_NODE_TO_LORO_CONTAINER_MAPPING.set(leftNode as Node, leftLoro.id);
-        mapping.set(leftLoro.id, leftNode);
+        // We need to refresh all the mappings under this node
+        if (!Array.isArray(leftNode)) {
+          updateLoroMap(leftLoro as LoroNode, leftNode as Node, mapping);
+        }
       } else {
         break;
       }
@@ -532,25 +553,19 @@ export function updateLoroMapChildren(
   for (; right + left < minLength; right++) {
     const rightLoro = loroChildren.get(loroChildLength - right - 1);
     const rightNode = nodeChildren[nodeChildLength - right - 1];
-    if (
-      rightLoro == null ||
-      rightNode == null ||
-      (isContainer(rightLoro) &&
-        !eqMappedNode(mapping.get(rightLoro.id), rightNode))
-    ) {
+    if (rightLoro == null || rightNode == null) {
+      break;
+    }
+
+    if (isContainer(rightLoro) && mapping.get(rightLoro.id) !== rightNode) {
       if (
-        rightLoro != null &&
-        rightNode != null &&
-        isContainer(rightLoro) &&
+        eqMappedNode(mapping.get(rightLoro.id), rightNode) ||
         eqLoroObjNode(rightLoro, rightNode)
       ) {
-        // If they actually equal but have different pointers, update the mapping
-        // update mapping
-        WEAK_NODE_TO_LORO_CONTAINER_MAPPING.set(
-          rightNode as Node,
-          rightLoro.id,
-        );
-        mapping.set(rightLoro.id, rightNode);
+        // We need to refresh all the mappings under this node
+        if (!Array.isArray(rightNode)) {
+          updateLoroMap(rightLoro as LoroNode, rightNode as Node, mapping);
+        }
       } else {
         break;
       }
