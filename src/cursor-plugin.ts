@@ -346,6 +346,7 @@ export function cursorToAbsolutePosition(
 
     targetChildId = parentNode.id;
     loroNode = parentNode.parent()?.parent() as LoroNode | undefined;
+    index = 0;
   } else {
     const loroText = doc.getText(containerId);
     const pos = doc.getCursorPos(cursor);
