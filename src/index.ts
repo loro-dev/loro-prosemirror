@@ -4,7 +4,6 @@ export {
   type LoroSyncPluginProps,
   type LoroSyncPluginState,
 } from "./sync-plugin";
-export type { LoroDocType } from "./lib";
 export {
   createNodeFromLoroObj,
   updateLoroToPmState,
@@ -13,6 +12,12 @@ export {
   CHILDREN_KEY,
   ATTRIBUTES_KEY,
   type LoroNodeMapping,
+  type LoroDocType,
+  type LoroChildrenListType,
+  type LoroNodeContainerType,
+  type LoroNode,
+  type LoroContainer,
+  type LoroType,
 } from "./lib";
 export { LoroCursorPlugin } from "./cursor-plugin";
 export { CursorAwareness } from "./awareness";
