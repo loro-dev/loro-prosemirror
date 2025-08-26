@@ -31,7 +31,6 @@ interface LoroUndoPluginState {
   canRedo: boolean;
   isUndoing: { current: boolean };
 }
-
 type Cursors = { anchor: Cursor | null; focus: Cursor | null };
 export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
   const undoManager = props.undoManager || new UndoManager(props.doc, {});
@@ -144,7 +143,8 @@ export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
               loroState.doc,
               loroState.mapping,
             )[0];
-            const focusPos = focus &&
+            const focusPos =
+              focus &&
               cursorToAbsolutePosition(
                 focus,
                 loroState.doc,
