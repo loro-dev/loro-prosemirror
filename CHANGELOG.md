@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.1](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.0...v0.3.1) (2025-08-27)
+
+
+### Bug Fixes
+
+* undo/redo pos restore at the end of the text ([#35](https://github.com/loro-dev/loro-prosemirror/issues/35)) ([462d9fc](https://github.com/loro-dev/loro-prosemirror/commit/462d9fc6bee578eb8c8eabf84f78c7ddc7db5b9d))
+
 ## [0.3.0](https://github.com/loro-dev/loro-prosemirror/compare/v0.2.3...v0.3.0) (2025-08-13)
 
 
