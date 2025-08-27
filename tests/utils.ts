@@ -2,11 +2,10 @@ import { Schema } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
 import {
   type LoroNode,
-  type LoroNodeMapping,
   getLoroMapAttributes,
   getLoroMapChildren,
 } from "../src/lib";
-import { Loro, LoroList, LoroMap, LoroText } from "loro-crdt";
+import { LoroList, LoroMap, LoroText } from "loro-crdt";
 
 export function createEditorState(schema: Schema, content: any): EditorState {
   const doc = schema.nodeFromJSON(content);

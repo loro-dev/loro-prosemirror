@@ -12,7 +12,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "loro-crdt": "^1.5.5",
+    "loro-crdt": "^1.5.13",
     "loro-prosemirror": "workspace:*",
     "prosemirror-commands": "^1.5.2",
     "prosemirror-example-setup": "^1.2.2",
@@ -27,6 +27,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "loro-crdt": "^1.5.13",
     "@chromatic-com/storybook": "^1.3.3",
     "@storybook/addon-essentials": "^8.0.8",
     "@storybook/addon-interactions": "^8.0.8",

@@ -30,7 +30,7 @@ const loroCursorPluginKey = new PluginKey<{ awarenessUpdated: boolean }>(
 function createDecorations(
   state: EditorState,
   awareness: CursorAwareness,
-  plugin: Plugin<DecorationSet>,
+  _plugin: Plugin<DecorationSet>,
   createSelection: (user: PeerID) => DecorationAttrs,
   createCursor: (user: PeerID) => Element,
 ): DecorationSet {
@@ -106,13 +106,15 @@ export const LoroCursorPlugin = (
   },
 ) => {
   const getSelection = options.getSelection || ((state) => state.selection);
-  const createSelection = options.createSelection ||
+  const createSelection =
+    options.createSelection ||
     ((user) => ({
       class: "loro-selection",
       "data-peer": user,
       style: `background-color: rgba(228, 208, 102, 0.5)`,
     }));
-  const createCursor = options.createCursor ||
+  const createCursor =
+    options.createCursor ||
     ((user) => {
       const awarenessData = awareness.getAllStates();
       const cursorUserData = awarenessData[user];
@@ -152,9 +154,8 @@ export const LoroCursorPlugin = (
       },
       apply(tr, prevState, _oldState, newState) {
         const loroState = loroSyncPluginKey.getState(newState);
-        const loroCursorState: { awarenessUpdated: boolean } = tr.getMeta(
-          loroCursorPluginKey,
-        );
+        const loroCursorState: { awarenessUpdated: boolean } =
+          tr.getMeta(loroCursorPluginKey);
         if (
           (loroState && loroState.changedBy !== "local") ||
           (loroCursorState && loroCursorState.awarenessUpdated)
@@ -252,14 +253,15 @@ export function convertPmSelectionToCursors(
     loroState.doc as LoroDocType,
     loroState.mapping,
   );
-  const focus = selection.head == selection.anchor
-    ? anchor
-    : absolutePositionToCursor(
-      pmRootNode,
-      selection.head,
-      loroState.doc as LoroDocType,
-      loroState.mapping,
-    );
+  const focus =
+    selection.head == selection.anchor
+      ? anchor
+      : absolutePositionToCursor(
+          pmRootNode,
+          selection.head,
+          loroState.doc as LoroDocType,
+          loroState.mapping,
+        );
   return { anchor, focus };
 }
 
@@ -279,7 +281,8 @@ function absolutePositionToCursor(
   const nodeParent = pos.node(pos.depth);
   const offset = pos.parentOffset;
 
-  const loroId = WEAK_NODE_TO_LORO_CONTAINER_MAPPING.get(nodeParent) ??
+  const loroId =
+    WEAK_NODE_TO_LORO_CONTAINER_MAPPING.get(nodeParent) ??
     getByValue(mapping, nodeParent);
   if (!loroId) {
     if (anchor > 1) {
@@ -301,11 +304,7 @@ function absolutePositionToCursor(
     const child = children.get(childIndex);
     childIndex += 1;
     if (child instanceof LoroText) {
-      if (child.length >= index) {
-        return child.getCursor(index);
-      } else {
-        index -= child.length;
-      }
+      return child.getCursor(index);
     } else {
       if (index == 0) {
         // This happens when user selects an image or a horizontal rule

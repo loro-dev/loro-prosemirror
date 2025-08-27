@@ -28,8 +28,8 @@ importers:
         specifier: ^8.57.0
         version: 8.57.0
       loro-crdt:
-        specifier: ^1.4.0
-        version: 1.5.5
+        specifier: ^1.5.13
+        version: 1.5.13
       prettier:
         specifier: ^3.2.5
         version: 3.2.5
@@ -64,8 +64,8 @@ importers:
   examples/stories:
     dependencies:
       loro-crdt:
-        specifier: ^1.5.5
-        version: 1.5.5
+        specifier: ^1.5.13
+        version: 1.5.13
       loro-prosemirror:
         specifier: workspace:*
         version: link:../..
@@ -2907,8 +2907,8 @@ packages:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
 
-  loro-crdt@1.5.5:
-    resolution: {integrity: sha512-XflGSRTgbFFEpYOc5J2WTVFg5mkEK7Cap+tNFTcIvSAxXQfsLGI8ai+y2PeYPVVbmHSV8NtLwId0QB2aR1kEWQ==}
+  loro-crdt@1.5.13:
+    resolution: {integrity: sha512-e385aANpoFlbrSy1wBGDb0yv5ko1DTG2d7JqjTAY1UNHKSzhWTs3dwwmI3z3YJKiTTmYEqFyKSJRAQXuZE0wQg==}
 
   loupe@2.3.7:
     resolution: {integrity: sha512-zSMINGVYkdpYSOBmLi0D1Uo7JU9nVdQKrHxC8eYlV+9YKK9WePqAlL7lSlorG/U2Fw1w0hTBmaa/jrQ3UbPHtA==}
@@ -7106,7 +7106,7 @@ snapshots:
     dependencies:
       js-tokens: 4.0.0
 
-  loro-crdt@1.5.5: {}
+  loro-crdt@1.5.13: {}
 
   loupe@2.3.7:
     dependencies:

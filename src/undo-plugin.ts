@@ -31,7 +31,6 @@ interface LoroUndoPluginState {
   canRedo: boolean;
   isUndoing: { current: boolean };
 }
-
 type Cursors = { anchor: Cursor | null; focus: Cursor | null };
 export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
   const undoManager = props.undoManager || new UndoManager(props.doc, {});
@@ -42,7 +41,7 @@ export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
   return new Plugin({
     key: loroUndoPluginKey,
     state: {
-      init: (config, editorState): LoroUndoPluginState => {
+      init: (_config, editorState): LoroUndoPluginState => {
         configLoroTextStyle(props.doc, editorState.schema);
 
         undoManager.addExcludeOriginPrefix("sys:init");
@@ -53,7 +52,7 @@ export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
           isUndoing: { current: false },
         };
       },
-      apply: (tr, state, oldEditorState, newEditorState) => {
+      apply: (_tr, state, oldEditorState, _newEditorState) => {
         const undoState = loroUndoPluginKey.getState(oldEditorState);
         const loroState = loroSyncPluginKey.getState(oldEditorState);
         if (!undoState || !loroState) {
@@ -144,7 +143,8 @@ export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
               loroState.doc,
               loroState.mapping,
             )[0];
-            const focusPos = focus &&
+            const focusPos =
+              focus &&
               cursorToAbsolutePosition(
                 focus,
                 loroState.doc,
