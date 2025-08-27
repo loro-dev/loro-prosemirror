@@ -52,7 +52,7 @@ export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
           isUndoing: { current: false },
         };
       },
-      apply: (tr, state, oldEditorState, newEditorState) => {
+      apply: (tr, state, oldEditorState, _newEditorState) => {
         const undoState = loroUndoPluginKey.getState(oldEditorState);
         const loroState = loroSyncPluginKey.getState(oldEditorState);
         if (!undoState || !loroState) {

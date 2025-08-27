@@ -64,8 +64,8 @@ importers:
   examples/stories:
     dependencies:
       loro-crdt:
-        specifier: ^1.5.5
-        version: 1.5.12
+        specifier: ^1.5.13
+        version: 1.5.13
       loro-prosemirror:
         specifier: workspace:*
         version: link:../..
@@ -2906,9 +2906,6 @@ packages:
   loose-envify@1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
-
-  loro-crdt@1.5.12:
-    resolution: {integrity: sha512-mT615hwQhrweGiAqrW6dyKzIdAV68WdRdathivYmzbWW2O+Mvtm1fD/eHGRyzmlJaVZyqiFg8pCou+/TApJ+mA==}
 
   loro-crdt@1.5.13:
     resolution: {integrity: sha512-e385aANpoFlbrSy1wBGDb0yv5ko1DTG2d7JqjTAY1UNHKSzhWTs3dwwmI3z3YJKiTTmYEqFyKSJRAQXuZE0wQg==}
@@ -7108,8 +7105,6 @@ snapshots:
   loose-envify@1.4.0:
     dependencies:
       js-tokens: 4.0.0
-
-  loro-crdt@1.5.12: {}
 
   loro-crdt@1.5.13: {}
 

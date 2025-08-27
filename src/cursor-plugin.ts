@@ -30,7 +30,7 @@ const loroCursorPluginKey = new PluginKey<{ awarenessUpdated: boolean }>(
 function createDecorations(
   state: EditorState,
   awareness: CursorAwareness,
-  plugin: Plugin<DecorationSet>,
+  _plugin: Plugin<DecorationSet>,
   createSelection: (user: PeerID) => DecorationAttrs,
   createCursor: (user: PeerID) => Element,
 ): DecorationSet {
@@ -281,7 +281,8 @@ function absolutePositionToCursor(
   const nodeParent = pos.node(pos.depth);
   const offset = pos.parentOffset;
 
-  const loroId = WEAK_NODE_TO_LORO_CONTAINER_MAPPING.get(nodeParent) ??
+  const loroId =
+    WEAK_NODE_TO_LORO_CONTAINER_MAPPING.get(nodeParent) ??
     getByValue(mapping, nodeParent);
   if (!loroId) {
     if (anchor > 1) {
