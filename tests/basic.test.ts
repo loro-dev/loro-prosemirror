@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { LoroDoc, LoroText } from "loro-crdt";
+import { LoroDoc } from "loro-crdt";
 
 import {
   ROOT_DOC_KEY,
@@ -394,11 +394,6 @@ describe("createNodeFromLoroObj", () => {
     const mapping: LoroNodeMapping = new Map();
     updateLoroToPmState(loroDoc, mapping, _editorState);
 
-    const node = createNodeFromLoroObj(
-      schema,
-      loroDoc.getMap(ROOT_DOC_KEY),
-      mapping
-    );
     const editorState = createEditorState(schema, examplePmContent.doc);
     expect(editorState.toJSON()).toEqual(examplePmContent);
   });
@@ -419,7 +414,6 @@ describe("createNodeFromLoroObj", () => {
     });
 
     // Now lets add a paragraph
-    const loroParagraph = new LoroText();
     const p1 = insertLoroMap(getLoroMapChildren(loroInnerDoc), "paragraph");
     const p1Text = insertLoroText(getLoroMapChildren(p1 as any));
     p1Text.insert(0, "Hello world!");
@@ -489,12 +483,12 @@ describe("createNodeFromLoroObj", () => {
     // Now lets add a bullet list
     const bulletList = insertLoroMap(
       getLoroMapChildren(loroInnerDoc),
-      "bulletList"
+      "bulletList",
     );
     const bullet1 = insertLoroMap(getLoroMapChildren(bulletList), "listItem");
     const bullet1Paragraph = insertLoroMap(
       getLoroMapChildren(bullet1),
-      "paragraph"
+      "paragraph",
     );
     const bullet1Text = insertLoroText(getLoroMapChildren(bullet1Paragraph));
     bullet1Text.insert(0, "Bullet 1");
@@ -502,7 +496,7 @@ describe("createNodeFromLoroObj", () => {
     const bullet2 = insertLoroMap(getLoroMapChildren(bulletList), "listItem");
     const bullet2Paragraph = insertLoroMap(
       getLoroMapChildren(bullet2),
-      "paragraph"
+      "paragraph",
     );
     const bullet2Text = insertLoroText(getLoroMapChildren(bullet2Paragraph));
     bullet2Text.insert(0, "Bullet 2");

@@ -157,7 +157,7 @@ export abstract class Field {
   read(dom: HTMLElement) { return (dom as any).value }
 
   /// A field-type-specific validation function.
-  validateType(value: any): string | null { return null }
+  validateType(_value: any): string | null { return null }
 
   /// @internal
   validate(value: any): string | null {

@@ -41,7 +41,7 @@ export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
   return new Plugin({
     key: loroUndoPluginKey,
     state: {
-      init: (config, editorState): LoroUndoPluginState => {
+      init: (_config, editorState): LoroUndoPluginState => {
         configLoroTextStyle(props.doc, editorState.schema);
 
         undoManager.addExcludeOriginPrefix("sys:init");
@@ -52,7 +52,7 @@ export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
           isUndoing: { current: false },
         };
       },
-      apply: (tr, state, oldEditorState, _newEditorState) => {
+      apply: (_tr, state, oldEditorState, _newEditorState) => {
         const undoState = loroUndoPluginKey.getState(oldEditorState);
         const loroState = loroSyncPluginKey.getState(oldEditorState);
         if (!undoState || !loroState) {

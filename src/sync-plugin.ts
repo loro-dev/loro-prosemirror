@@ -37,15 +37,15 @@ export const loroSyncPluginKey = new PluginKey<LoroSyncPluginState>(
 
 type PluginTransactionType =
   | {
-    type: "doc-changed";
-  }
+      type: "doc-changed";
+    }
   | {
-    type: "non-local-updates";
-  }
+      type: "non-local-updates";
+    }
   | {
-    type: "update-state";
-    state: Partial<LoroSyncPluginState>;
-  };
+      type: "update-state";
+      state: Partial<LoroSyncPluginState>;
+    };
 
 export interface LoroSyncPluginProps {
   doc: LoroDocType;
@@ -72,7 +72,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
       },
     },
     state: {
-      init: (config, editorState): LoroSyncPluginState => {
+      init: (_config, editorState): LoroSyncPluginState => {
         configLoroTextStyle(props.doc, editorState.schema);
 
         return {
@@ -95,7 +95,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
         }
         switch (meta?.type) {
           case "doc-changed":
-            if (!(undoState?.isUndoing.current)) {
+            if (!undoState?.isUndoing.current) {
               updateLoroToPmState(
                 state.doc as LoroDocType,
                 state.mapping,
@@ -117,7 +117,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
         return state;
       },
     } as StateField<LoroSyncPluginState>,
-    appendTransaction: (transactions, oldEditorState, newEditorState) => {
+    appendTransaction: (transactions, _oldEditorState, newEditorState) => {
       if (transactions.some((tr) => tr.docChanged)) {
         return newEditorState.tr.setMeta(loroSyncPluginKey, {
           type: "doc-changed",
@@ -128,7 +128,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
     view: (view: EditorView) => {
       const timeoutId = setTimeout(() => init(view), 0);
       return {
-        update: (view: EditorView, prevState: EditorState) => {},
+        update: (_view: EditorView, _prevState: EditorState) => {},
         destroy: () => {
           clearTimeout(timeoutId);
         },
@@ -146,20 +146,21 @@ function init(view: EditorView) {
   docSubscription?.();
 
   if (state.containerId) {
-    docSubscription = state.doc!.getContainerById(state.containerId)!
+    docSubscription = state
+      .doc!.getContainerById(state.containerId)!
       .subscribe((event) => {
         updateNodeOnLoroEvent(view, event);
       });
   } else {
     docSubscription = state.doc.subscribe((event) =>
-      updateNodeOnLoroEvent(view, event)
+      updateNodeOnLoroEvent(view, event),
     );
   }
 
   const innerDoc = state.containerId
     ? (state.doc.getContainerById(
-      state.containerId,
-    ) as LoroMap<LoroNodeContainerType>)
+        state.containerId,
+      ) as LoroMap<LoroNodeContainerType>)
     : (state.doc as LoroDocType).getMap(ROOT_DOC_KEY);
 
   const mapping: LoroNodeMapping = new Map();
@@ -205,8 +206,8 @@ function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
     view.state.schema,
     state.containerId
       ? (state.doc.getContainerById(
-        state.containerId,
-      ) as LoroMap<LoroNodeContainerType>)
+          state.containerId,
+        ) as LoroMap<LoroNodeContainerType>)
       : (state.doc as LoroDocType).getMap(ROOT_DOC_KEY),
     mapping,
   );
@@ -236,12 +237,8 @@ function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
         state.doc,
         state.mapping,
       )[0];
-      const focusPos = focus &&
-        cursorToAbsolutePosition(
-          focus,
-          state.doc,
-          state.mapping,
-        )[0];
+      const focusPos =
+        focus && cursorToAbsolutePosition(focus, state.doc, state.mapping)[0];
       const selection = TextSelection.create(
         view.state.tr.doc,
         anchorPos,
