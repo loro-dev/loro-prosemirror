@@ -187,15 +187,15 @@ export const undo: Command = (state, dispatch): boolean => {
     return false;
   }
 
+  if (!dispatch) {
+    return undoState.undoManager.canUndo();
+  }
+
   undoState.isUndoing.current = true;
   setTimeout(() => {
     undoState.isUndoing.current = false;
   }, 0);
-  if (dispatch) {
-    return undoState.undoManager.undo();
-  } else {
-    return undoState.undoManager.canUndo();
-  }
+  return undoState.undoManager.undo();
 };
 
 export const redo: Command = (state, dispatch): boolean => {
@@ -203,13 +203,14 @@ export const redo: Command = (state, dispatch): boolean => {
   if (!undoState) {
     return false;
   }
+
+  if (!dispatch) {
+    return undoState.undoManager.canRedo();
+  }
+
   undoState.isUndoing.current = true;
   setTimeout(() => {
     undoState.isUndoing.current = false;
   }, 0);
-  if (dispatch) {
-    return undoState.undoManager.redo();
-  } else {
-    return undoState.undoManager.canRedo();
-  }
+  return undoState.undoManager.redo();
 };
