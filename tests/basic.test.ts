@@ -38,7 +38,11 @@ const examplePmContent = {
         type: "paragraph",
         content: [
           { type: "text", text: "Second paragraph " },
-          { type: "text", marks: [{ type: "bold" }], text: "with bold" },
+          {
+            type: "text",
+            marks: [{ type: "bold" }],
+            text: "with bold",
+          },
           { type: "text", text: " text" },
         ],
       },
@@ -77,7 +81,12 @@ const examplePmContent = {
                     content: [
                       {
                         type: "paragraph",
-                        content: [{ type: "text", text: "Sub Bullet" }],
+                        content: [
+                          {
+                            type: "text",
+                            text: "Sub Bullet",
+                          },
+                        ],
                       },
                       {
                         type: "bulletList",
@@ -88,7 +97,10 @@ const examplePmContent = {
                               {
                                 type: "paragraph",
                                 content: [
-                                  { type: "text", text: "Inner bulllet" },
+                                  {
+                                    type: "text",
+                                    text: "Inner bulllet",
+                                  },
                                 ],
                               },
                             ],
@@ -122,7 +134,11 @@ const exampleLoroContent = {
         attributes: { emoji: "🦜" },
         children: ["Test note"],
       },
-      { nodeName: "paragraph", attributes: {}, children: ["First paragraph"] },
+      {
+        nodeName: "paragraph",
+        attributes: {},
+        children: ["First paragraph"],
+      },
       {
         nodeName: "paragraph",
         attributes: {},
@@ -136,7 +152,11 @@ const exampleLoroContent = {
             nodeName: "listItem",
             attributes: {},
             children: [
-              { nodeName: "paragraph", attributes: {}, children: ["Bullet 1"] },
+              {
+                nodeName: "paragraph",
+                attributes: {},
+                children: ["Bullet 1"],
+              },
             ],
           },
           {
@@ -446,7 +466,11 @@ describe("createNodeFromLoroObj", () => {
           type: "paragraph",
           content: [
             { type: "text", text: "Hello " },
-            { type: "text", marks: [{ type: "bold" }], text: "world" },
+            {
+              type: "text",
+              marks: [{ type: "bold" }],
+              text: "world",
+            },
             { type: "text", text: "!" },
           ],
         },
@@ -469,7 +493,11 @@ describe("createNodeFromLoroObj", () => {
           type: "paragraph",
           content: [
             { type: "text", text: "Hello " },
-            { type: "text", marks: [{ type: "bold" }], text: "world" },
+            {
+              type: "text",
+              marks: [{ type: "bold" }],
+              text: "world",
+            },
             { type: "text", text: "!" },
           ],
         },
@@ -512,7 +540,11 @@ describe("createNodeFromLoroObj", () => {
           type: "paragraph",
           content: [
             { type: "text", text: "Hello " },
-            { type: "text", marks: [{ type: "bold" }], text: "world" },
+            {
+              type: "text",
+              marks: [{ type: "bold" }],
+              text: "world",
+            },
             { type: "text", text: "!" },
           ],
         },

@@ -2,11 +2,12 @@
   "name": "loro-prosemirror",
   "version": "0.3.1",
   "description": "Prosemirror Binding for Loro",
-  "packageManager": "pnpm@10.15.0",
+  "packageManager": "pnpm@10.19.0",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
+    "format": "prettier --write .",
     "build": "rollup -c",
     "test": "vitest run",
     "lint": "tsc --noEmit",

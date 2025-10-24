@@ -5,20 +5,23 @@ import { Editor } from "./Editor";
 import { LoroDoc, VersionVector, PeerID } from "loro-crdt";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { CursorAwareness, LoroDocType } from "loro-prosemirror";
-import { DagViewComponent } from './DagView';
+import { DagViewComponent } from "./DagView";
 import type { ViewDagNode } from "./DagView";
 import { convertSyncStepsToNodes } from "./editor-history";
-import { styles } from './styles/CollaborativeEditor.styles';
+import { styles } from "./styles/CollaborativeEditor.styles";
 
-
-function applyCustom(awareness: CursorAwareness, peerId: PeerID, payload: {
-  anchor: Uint8Array | null;
-  focus: Uint8Array | null;
-  user: {
-    name: string;
-    color: string;
-  } | null;
-}) {
+function applyCustom(
+  awareness: CursorAwareness,
+  peerId: PeerID,
+  payload: {
+    anchor: Uint8Array | null;
+    focus: Uint8Array | null;
+    user: {
+      name: string;
+      color: string;
+    } | null;
+  },
+) {
   const a = new CursorAwareness(peerId);
   a.setLocalState(payload);
   awareness.apply(a.encode([peerId]));
@@ -47,7 +50,8 @@ export const Basic = () => {
     const currentState = awarenessA.current.getLocalState();
     if (!currentState?.anchor || !currentState?.focus) return;
 
-    const debugId = debugPeerIdA || Math.random().toString(10).substring(2, 15) as PeerID;
+    const debugId =
+      debugPeerIdA || (Math.random().toString(10).substring(2, 15) as PeerID);
     if (!debugPeerIdA) setDebugPeerIdA(debugId);
 
     applyCustom(awarenessA.current, debugId, {
@@ -59,16 +63,16 @@ export const Basic = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: '10px' }}>
+      <div style={{ marginBottom: "10px" }}>
         <button
           onMouseDownCapture={createDebugCursor}
           style={{
-            padding: '5px 10px',
-            backgroundColor: '#ff00ff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
+            padding: "5px 10px",
+            backgroundColor: "#ff00ff",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
           }}
         >
           Add Debug Cursor
@@ -89,7 +93,9 @@ export const BasicWithHistory = () => {
   const idA = loroARef.current.peerIdStr;
   const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
 
-  const DagView: StoryFn<{ nodes: ViewDagNode[], frontiers: string[] }> = (args) => (
+  const DagView: StoryFn<{ nodes: ViewDagNode[]; frontiers: string[] }> = (
+    args,
+  ) => (
     <div style={styles.historyCard}>
       <h3 style={styles.historyTitle}>Operation History</h3>
       <DagViewComponent {...args} />
@@ -173,11 +179,8 @@ function encodeUpdateMessage(
 ): Uint8Array {
   const message = new Uint8Array(2 + payload.length);
   message[0] = 1;
-  message[1] = updateType === "ephemeral"
-    ? 0
-    : updateType === "awareness"
-      ? 1
-      : 2;
+  message[1] =
+    updateType === "ephemeral" ? 0 : updateType === "awareness" ? 1 : 2;
   message.set(payload, 2);
   return message;
 }
@@ -198,13 +201,14 @@ export const Sync = () => {
     const currentState = awarenessA.current.getLocalState();
     if (!currentState?.anchor || !currentState?.focus) return;
 
-    const debugId = debugPeerIdA || Math.random().toString(10).substring(2, 15) as PeerID;
+    const debugId =
+      debugPeerIdA || (Math.random().toString(10).substring(2, 15) as PeerID);
     if (!debugPeerIdA) setDebugPeerIdA(debugId as PeerID);
 
     applyCustom(awarenessA.current, debugId, {
       user: { name: "Debug A", color: "#ff00ff" },
       anchor: currentState.anchor,
-      focus: currentState.focus
+      focus: currentState.focus,
     });
   }, [debugPeerIdA]);
 
@@ -212,13 +216,14 @@ export const Sync = () => {
     const currentState = awarenessB.current.getLocalState();
     if (!currentState?.anchor || !currentState?.focus) return;
 
-    const debugId = debugPeerIdB || Math.random().toString(10).substring(2, 15) as PeerID;
+    const debugId =
+      debugPeerIdB || (Math.random().toString(10).substring(2, 15) as PeerID);
     if (!debugPeerIdB) setDebugPeerIdB(debugId as PeerID);
 
     applyCustom(awarenessB.current, debugId, {
       user: { name: "Debug B", color: "#00ffff" },
       anchor: currentState.anchor,
-      focus: currentState.focus
+      focus: currentState.focus,
     });
   }, [debugPeerIdB]);
 
@@ -259,16 +264,16 @@ export const Sync = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '10px' }}>
+      <div style={{ display: "flex", gap: "20px", marginBottom: "10px" }}>
         <button
           onMouseDownCapture={createDebugCursorA}
           style={{
-            padding: '5px 10px',
-            backgroundColor: '#ff00ff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
+            padding: "5px 10px",
+            backgroundColor: "#ff00ff",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
           }}
         >
           Debug Cursor A
@@ -276,12 +281,12 @@ export const Sync = () => {
         <button
           onMouseDownCapture={createDebugCursorB}
           style={{
-            padding: '5px 10px',
-            backgroundColor: '#ff00ff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
+            padding: "5px 10px",
+            backgroundColor: "#ff00ff",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
           }}
         >
           Debug Cursor B
@@ -314,7 +319,9 @@ export const SyncWithHistory = () => {
   const idB = loroBRef.current.peerIdStr;
   const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
 
-  const DagView: StoryFn<{ nodes: ViewDagNode[], frontiers: string[] }> = (args) => (
+  const DagView: StoryFn<{ nodes: ViewDagNode[]; frontiers: string[] }> = (
+    args,
+  ) => (
     <div style={styles.historyCard}>
       <h3 style={styles.historyTitle}>Operation History</h3>
       <DagViewComponent {...args} />
@@ -408,7 +415,6 @@ export const SyncWithHistory = () => {
   );
 };
 
-
 export const BroadcastChannelExample = () => {
   const bcA = useRef<BroadcastChannel>(new BroadcastChannel(`A`));
   const loroARef = useRef<LoroDocType>(new LoroDoc());
@@ -437,7 +443,10 @@ export const BroadcastChannelExample = () => {
         bcA.current.postMessage(
           encodeUpdateMessage(
             "crdt",
-            loroARef.current.export({ mode: "update", from: lastStateA }),
+            loroARef.current.export({
+              mode: "update",
+              from: lastStateA,
+            }),
           ),
         );
         setLastStateA(loroARef.current.version());
@@ -483,7 +492,9 @@ export const OfflineSyncWithHistory = () => {
   const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
   const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
 
-  const DagView: StoryFn<{ nodes: ViewDagNode[], frontiers: string[] }> = (args) => (
+  const DagView: StoryFn<{ nodes: ViewDagNode[]; frontiers: string[] }> = (
+    args,
+  ) => (
     <div style={styles.historyCard}>
       <h3 style={styles.historyTitle}>Operation History</h3>
       <DagViewComponent {...args} />
@@ -497,14 +508,15 @@ export const OfflineSyncWithHistory = () => {
     if (!currentState?.anchor || !currentState?.focus) return;
 
     // Create a unique debug peer ID if not exists
-    const debugId = debugPeerIdA || Math.random().toString(10).substring(2, 15) as PeerID;
+    const debugId =
+      debugPeerIdA || (Math.random().toString(10).substring(2, 15) as PeerID);
     if (!debugPeerIdA) setDebugPeerIdA(debugId as PeerID);
 
     // Apply a debug cursor using current position but different user
     applyCustom(awarenessA.current, debugId, {
       user: { name: "Debug A", color: "#ff00ff" },
       anchor: currentState.anchor,
-      focus: currentState.focus
+      focus: currentState.focus,
     });
   }, [debugPeerIdA]);
 
@@ -515,14 +527,15 @@ export const OfflineSyncWithHistory = () => {
     if (!currentState?.anchor || !currentState?.focus) return;
 
     // Create a unique debug peer ID if not exists
-    const debugId = debugPeerIdB || Math.random().toString(10).substring(2, 15) as PeerID;
+    const debugId =
+      debugPeerIdB || (Math.random().toString(10).substring(2, 15) as PeerID);
     if (!debugPeerIdB) setDebugPeerIdB(debugId as PeerID);
 
     // Apply a debug cursor using current position but different user
     applyCustom(awarenessB.current, debugId, {
       user: { name: "Debug B", color: "#00ffff" },
       anchor: currentState.anchor,
-      focus: currentState.focus
+      focus: currentState.focus,
     });
   }, [debugPeerIdB]);
 
@@ -530,16 +543,16 @@ export const OfflineSyncWithHistory = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Use Ctrl+Alt+O (or Cmd+Alt+O on Mac) to toggle all peers
-      if ((e.ctrlKey || e.metaKey) && e.altKey && e.code === 'KeyO') {
+      if ((e.ctrlKey || e.metaKey) && e.altKey && e.code === "KeyO") {
         console.log("toggle all peers online/offline");
-        setIsAOnline(prev => !prev);
-        setIsBOnline(prev => !prev);
+        setIsAOnline((prev) => !prev);
+        setIsBOnline((prev) => !prev);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
@@ -555,10 +568,12 @@ export const OfflineSyncWithHistory = () => {
       if (event.by === "local" && isAOnline && isBOnline) {
         loroARef.current.commit();
 
-        loroBRef.current.import(loroARef.current.export({
-          mode: "update",
-          from: loroBRef.current.oplogVersion(),
-        }));
+        loroBRef.current.import(
+          loroARef.current.export({
+            mode: "update",
+            from: loroBRef.current.oplogVersion(),
+          }),
+        );
 
         const updatedDagInfo = convertSyncStepsToNodes(loroARef.current);
         setDagInfo(updatedDagInfo);
@@ -570,10 +585,12 @@ export const OfflineSyncWithHistory = () => {
       if (event.by === "local" && isBOnline && isAOnline) {
         loroBRef.current.commit();
 
-        loroARef.current.import(loroBRef.current.export({
-          mode: "update",
-          from: loroARef.current.oplogVersion(),
-        }));
+        loroARef.current.import(
+          loroBRef.current.export({
+            mode: "update",
+            from: loroARef.current.oplogVersion(),
+          }),
+        );
 
         const updatedDagInfo = convertSyncStepsToNodes(loroBRef.current);
         setDagInfo(updatedDagInfo);
@@ -618,7 +635,9 @@ export const OfflineSyncWithHistory = () => {
       loroARef.current.import(snapshotB);
       loroARef.current.commit();
 
-      const updatedDagInfo = convertSyncStepsToNodes(loroARef.current as LoroDoc);
+      const updatedDagInfo = convertSyncStepsToNodes(
+        loroARef.current as LoroDoc,
+      );
       setDagInfo(updatedDagInfo);
     }
   }, [isAOnline, isBOnline]);
@@ -633,10 +652,13 @@ export const OfflineSyncWithHistory = () => {
         <div style={styles.editorCard}>
           <div style={styles.editorHeader}>
             <h3 style={styles.editorTitle}>Editor A</h3>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: "flex", gap: "8px" }}>
               <button
                 onMouseDownCapture={createDebugCursorA}
-                style={{ ...styles.statusButton(true), backgroundColor: '#ff00ff' }}
+                style={{
+                  ...styles.statusButton(true),
+                  backgroundColor: "#ff00ff",
+                }}
                 title="Add debug cursor at current position"
               >
                 Debug Cursor
@@ -646,7 +668,7 @@ export const OfflineSyncWithHistory = () => {
                 style={styles.statusButton(isAOnline)}
                 title="Toggle online/offline, Meta+Alt+O"
               >
-                {isAOnline ? 'Online' : 'Offline'}
+                {isAOnline ? "Online" : "Offline"}
               </button>
             </div>
           </div>
@@ -662,10 +684,13 @@ export const OfflineSyncWithHistory = () => {
         <div style={styles.editorCard}>
           <div style={styles.editorHeader}>
             <h3 style={styles.editorTitle}>Editor B</h3>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: "flex", gap: "8px" }}>
               <button
                 onMouseDownCapture={createDebugCursorB}
-                style={{ ...styles.statusButton(true), backgroundColor: '#ff00ff' }}
+                style={{
+                  ...styles.statusButton(true),
+                  backgroundColor: "#ff00ff",
+                }}
                 title="Add debug cursor at current position"
               >
                 Debug Cursor
@@ -675,7 +700,7 @@ export const OfflineSyncWithHistory = () => {
                 style={styles.statusButton(isBOnline)}
                 title="Toggle online/offline, Meta+Alt+O"
               >
-                {isBOnline ? 'Online' : 'Offline'}
+                {isBOnline ? "Online" : "Offline"}
               </button>
             </div>
           </div>
@@ -728,8 +753,14 @@ export const MultiOfflineSyncWithHistory = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Use Ctrl+Alt+O (or Cmd+Alt+O on Mac) to toggle all peers
-      if ((e.ctrlKey || e.metaKey) && e.altKey && e.code === 'KeyO') {
-        const newState = !(isAOnline && isBOnline && isCOnline && isDOnline && isEOnline);
+      if ((e.ctrlKey || e.metaKey) && e.altKey && e.code === "KeyO") {
+        const newState = !(
+          isAOnline &&
+          isBOnline &&
+          isCOnline &&
+          isDOnline &&
+          isEOnline
+        );
         setIsAOnline(newState);
         setIsBOnline(newState);
         setIsCOnline(newState);
@@ -738,13 +769,16 @@ export const MultiOfflineSyncWithHistory = () => {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown, true);
+    window.addEventListener("keydown", handleKeyDown, true);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown, true);
+      window.removeEventListener("keydown", handleKeyDown, true);
     };
   }, [isAOnline, isBOnline, isCOnline, isDOnline, isEOnline]);
 
-  const DagTemplate: StoryFn<{ nodes: ViewDagNode[], frontiers: string[] }> = (args) => (
+  const DagTemplate: StoryFn<{
+    nodes: ViewDagNode[];
+    frontiers: string[];
+  }> = (args) => (
     <div style={styles.historyCard}>
       <h3 style={styles.historyTitle}>Operation History</h3>
       <DagViewComponent {...args} />
@@ -769,7 +803,9 @@ export const MultiOfflineSyncWithHistory = () => {
       loroARef.current.subscribe((event) => {
         if (event.by === "local" && isAOnline) {
           loroARef.current.commit();
-          const updateBytes = loroARef.current.export({ mode: "update" });
+          const updateBytes = loroARef.current.export({
+            mode: "update",
+          });
 
           if (isBOnline) loroBRef.current.import(updateBytes);
           if (isCOnline) loroCRef.current.import(updateBytes);
@@ -784,7 +820,9 @@ export const MultiOfflineSyncWithHistory = () => {
       loroBRef.current.subscribe((event) => {
         if (event.by === "local" && isBOnline) {
           loroBRef.current.commit();
-          const updateBytes = loroBRef.current.export({ mode: "update" });
+          const updateBytes = loroBRef.current.export({
+            mode: "update",
+          });
 
           if (isAOnline) loroARef.current.import(updateBytes);
           if (isCOnline) loroCRef.current.import(updateBytes);
@@ -799,7 +837,9 @@ export const MultiOfflineSyncWithHistory = () => {
       loroCRef.current.subscribe((event) => {
         if (event.by === "local" && isCOnline) {
           loroCRef.current.commit();
-          const updateBytes = loroCRef.current.export({ mode: "update" });
+          const updateBytes = loroCRef.current.export({
+            mode: "update",
+          });
 
           if (isAOnline) loroARef.current.import(updateBytes);
           if (isBOnline) loroBRef.current.import(updateBytes);
@@ -814,7 +854,9 @@ export const MultiOfflineSyncWithHistory = () => {
       loroDRef.current.subscribe((event) => {
         if (event.by === "local" && isDOnline) {
           loroDRef.current.commit();
-          const updateBytes = loroDRef.current.export({ mode: "update" });
+          const updateBytes = loroDRef.current.export({
+            mode: "update",
+          });
 
           if (isAOnline) loroARef.current.import(updateBytes);
           if (isBOnline) loroBRef.current.import(updateBytes);
@@ -829,7 +871,9 @@ export const MultiOfflineSyncWithHistory = () => {
       loroERef.current.subscribe((event) => {
         if (event.by === "local" && isEOnline) {
           loroERef.current.commit();
-          const updateBytes = loroERef.current.export({ mode: "update" });
+          const updateBytes = loroERef.current.export({
+            mode: "update",
+          });
 
           if (isAOnline) loroARef.current.import(updateBytes);
           if (isBOnline) loroBRef.current.import(updateBytes);
@@ -839,11 +883,15 @@ export const MultiOfflineSyncWithHistory = () => {
           const updatedDagInfo = convertSyncStepsToNodes(loroERef.current);
           setDagInfo(updatedDagInfo);
         }
-      })
+      }),
     ];
 
     // Cursor awareness
-    const setupAwareness = (from: CursorAwareness, fromId: string, isFromOnline: boolean) => {
+    const setupAwareness = (
+      from: CursorAwareness,
+      fromId: string,
+      isFromOnline: boolean,
+    ) => {
       const listener = (_state: any, origin: any) => {
         if (origin === "local" && isFromOnline) {
           const encoded = from.encode([`${parseInt(fromId)}`]);
@@ -853,7 +901,7 @@ export const MultiOfflineSyncWithHistory = () => {
           if (isDOnline) awarenessD.current.apply(encoded);
           if (isEOnline) awarenessE.current.apply(encoded);
         }
-      }
+      };
       from.addListener(listener);
       return () => from.removeListener(listener);
     };
@@ -864,47 +912,64 @@ export const MultiOfflineSyncWithHistory = () => {
       setupAwareness(awarenessC.current, idC, isCOnline),
       setupAwareness(awarenessD.current, idD, isDOnline),
       setupAwareness(awarenessE.current, idE, isEOnline),
-    ]
+    ];
 
     return () => {
-      subscriptions.forEach(unsub => unsub());
-      unsubscribers.forEach(unsub => unsub())
+      subscriptions.forEach((unsub) => unsub());
+      unsubscribers.forEach((unsub) => unsub());
     };
-  }, [isAOnline, isBOnline, isCOnline, isDOnline, isEOnline, idA, idB, idC, idD, idE]);
+  }, [
+    isAOnline,
+    isBOnline,
+    isCOnline,
+    isDOnline,
+    isEOnline,
+    idA,
+    idB,
+    idC,
+    idD,
+    idE,
+  ]);
 
-  const syncWhenOnline = useCallback((editorRef: React.RefObject<LoroDocType>, isOnline: boolean) => {
-    if (!isOnline) return;
+  const syncWhenOnline = useCallback(
+    (editorRef: React.RefObject<LoroDocType>, isOnline: boolean) => {
+      if (!isOnline) return;
 
-    const otherOnlineEditors = [
-      { ref: loroARef, isOnline: isAOnline },
-      { ref: loroBRef, isOnline: isBOnline },
-      { ref: loroCRef, isOnline: isCOnline },
-      { ref: loroDRef, isOnline: isDOnline },
-      { ref: loroERef, isOnline: isEOnline }
-    ].filter(editor =>
-      editor.isOnline && editor.ref.current !== editorRef.current
-    );
+      const otherOnlineEditors = [
+        { ref: loroARef, isOnline: isAOnline },
+        { ref: loroBRef, isOnline: isBOnline },
+        { ref: loroCRef, isOnline: isCOnline },
+        { ref: loroDRef, isOnline: isDOnline },
+        { ref: loroERef, isOnline: isEOnline },
+      ].filter(
+        (editor) => editor.isOnline && editor.ref.current !== editorRef.current,
+      );
 
-    otherOnlineEditors.forEach(({ ref: otherRef }) => {
-      // Sync other editors to the current editor first
-      const otherSnapshot = otherRef.current.export({ mode: "update" });
-      editorRef.current?.import(otherSnapshot);
-      editorRef.current?.commit();
+      otherOnlineEditors.forEach(({ ref: otherRef }) => {
+        // Sync other editors to the current editor first
+        const otherSnapshot = otherRef.current.export({
+          mode: "update",
+        });
+        editorRef.current?.import(otherSnapshot);
+        editorRef.current?.commit();
 
-      // Then synchronize the current editor to another editor
-      const currentSnapshot = editorRef.current?.export({ mode: "update" });
-      if (currentSnapshot) {
-        otherRef.current.import(currentSnapshot);
-        otherRef.current.commit();
+        // Then synchronize the current editor to another editor
+        const currentSnapshot = editorRef.current?.export({
+          mode: "update",
+        });
+        if (currentSnapshot) {
+          otherRef.current.import(currentSnapshot);
+          otherRef.current.commit();
+        }
+      });
+
+      if (editorRef.current) {
+        const updatedDagInfo = convertSyncStepsToNodes(editorRef.current);
+        setDagInfo(updatedDagInfo);
       }
-    });
-
-    if (editorRef.current) {
-      const updatedDagInfo = convertSyncStepsToNodes(editorRef.current);
-      setDagInfo(updatedDagInfo);
-    }
-
-  }, [isAOnline, isBOnline, isCOnline, isDOnline, isEOnline]);
+    },
+    [isAOnline, isBOnline, isCOnline, isDOnline, isEOnline],
+  );
 
   // Call synchronization when state changes
   useEffect(() => {
@@ -938,7 +1003,7 @@ export const MultiOfflineSyncWithHistory = () => {
               onClick={() => setIsAOnline(!isAOnline)}
               style={styles.statusButton(isAOnline)}
             >
-              {isAOnline ? 'Online' : 'Offline'}
+              {isAOnline ? "Online" : "Offline"}
             </button>
           </div>
           <div style={styles.editorContent}>
@@ -958,7 +1023,7 @@ export const MultiOfflineSyncWithHistory = () => {
               onClick={() => setIsBOnline(!isBOnline)}
               style={styles.statusButton(isBOnline)}
             >
-              {isBOnline ? 'Online' : 'Offline'}
+              {isBOnline ? "Online" : "Offline"}
             </button>
           </div>
           <div style={styles.editorContent}>
@@ -978,7 +1043,7 @@ export const MultiOfflineSyncWithHistory = () => {
               onClick={() => setIsCOnline(!isCOnline)}
               style={styles.statusButton(isCOnline)}
             >
-              {isCOnline ? 'Online' : 'Offline'}
+              {isCOnline ? "Online" : "Offline"}
             </button>
           </div>
           <div style={styles.editorContent}>
@@ -998,7 +1063,7 @@ export const MultiOfflineSyncWithHistory = () => {
               onClick={() => setIsDOnline(!isDOnline)}
               style={styles.statusButton(isDOnline)}
             >
-              {isDOnline ? 'Online' : 'Offline'}
+              {isDOnline ? "Online" : "Offline"}
             </button>
           </div>
           <div style={styles.editorContent}>
@@ -1018,7 +1083,7 @@ export const MultiOfflineSyncWithHistory = () => {
               onClick={() => setIsEOnline(!isEOnline)}
               style={styles.statusButton(isEOnline)}
             >
-              {isEOnline ? 'Online' : 'Offline'}
+              {isEOnline ? "Online" : "Offline"}
             </button>
           </div>
           <div style={styles.editorContent}>
