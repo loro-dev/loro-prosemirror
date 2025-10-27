@@ -10,7 +10,7 @@ function getLoroTextStyle(schema: Schema): {
     Object.entries(schema.marks).map(([markName, markType]) => [
       markName,
       { expand: markType.spec.inclusive ? "after" : "none" },
-    ])
+    ]),
   );
 }
 

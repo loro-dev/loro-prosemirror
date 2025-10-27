@@ -233,7 +233,10 @@ export function updateLoroText(
   }
 
   obj.applyDelta(
-    content.map((c) => ({ retain: c.insert.length, attributes: c.attributes })),
+    content.map((c) => ({
+      retain: c.insert.length,
+      attributes: c.attributes,
+    })),
   );
 }
 

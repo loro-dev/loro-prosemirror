@@ -32,9 +32,9 @@ export default defineConfig([
     plugins: [
       dts({
         compilerOptions: {
-          preserveSymlinks: false
-        }
-      })
+          preserveSymlinks: false,
+        },
+      }),
     ],
     output: {
       file: `${name}.d.ts`,

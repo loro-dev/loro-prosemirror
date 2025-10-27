@@ -75,7 +75,9 @@ function createDecorations(
       if (focusCursorUpdate || anchorCursorUpdate) {
         const existingLocalState = awareness.getLocalState();
         awareness.setLocal({
-          ...(existingLocalState?.user && { user: existingLocalState.user }),
+          ...(existingLocalState?.user && {
+            user: existingLocalState.user,
+          }),
           anchor: anchorCursorUpdate || cursor.anchor,
           focus: focusCursorUpdate || cursor.focus,
         });
@@ -84,7 +86,9 @@ function createDecorations(
       if (focusCursorUpdate) {
         const existingLocalState = awareness.getLocalState();
         awareness.setLocal({
-          ...(existingLocalState?.user && { user: existingLocalState.user }),
+          ...(existingLocalState?.user && {
+            user: existingLocalState.user,
+          }),
           focus: focusCursorUpdate,
           anchor: focusCursorUpdate,
         });
@@ -182,7 +186,9 @@ export const LoroCursorPlugin = (
         if (origin !== "local") {
           setTimeout(() => {
             let tr = view.state.tr;
-            tr.setMeta(loroCursorPluginKey, { awarenessUpdated: true });
+            tr.setMeta(loroCursorPluginKey, {
+              awarenessUpdated: true,
+            });
             view.dispatch(tr);
           }, 0);
         }
