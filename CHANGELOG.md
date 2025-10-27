@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.2](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.1...v0.3.2) (2025-10-27)
+
+
+### Bug Fixes
+
+* avoid interrupting sync when checking canRedo/canUndo ([#40](https://github.com/loro-dev/loro-prosemirror/issues/40)) ([4c8456e](https://github.com/loro-dev/loro-prosemirror/commit/4c8456e11537ebc69452715830f28096eb8a12ea))
+
 ## [0.3.1](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.0...v0.3.1) (2025-08-27)
 
 
