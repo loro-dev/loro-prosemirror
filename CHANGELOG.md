@@ -4,60 +4,17 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [0.3.4](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.3...v0.3.4) (2025-10-29)
 
-
-### ⚠ BREAKING CHANGES
-
-* Upgrade to loro v0.13.0 API ([#1](https://github.com/loro-dev/loro-prosemirror/issues/1))
-
-### Features
-
-* Adds ability to use custom ContainerID to persist prosemirror document to. ([#20](https://github.com/loro-dev/loro-prosemirror/issues/20)) ([224510f](https://github.com/loro-dev/loro-prosemirror/commit/224510f312e909994172ca9b193906dbf1811160))
-* config Loro text style automatically based on ProseMirror schema ([#13](https://github.com/loro-dev/loro-prosemirror/issues/13)) ([47afc9e](https://github.com/loro-dev/loro-prosemirror/commit/47afc9eda4caef39f9f2d98701bf2bc61b23fa7d))
-* Editor history visualization ([#24](https://github.com/loro-dev/loro-prosemirror/issues/24)) ([74cbe41](https://github.com/loro-dev/loro-prosemirror/commit/74cbe41a883d0c9fd3e9642dd0a3fe962f1496a8))
-* export remaining types ([a348b53](https://github.com/loro-dev/loro-prosemirror/commit/a348b538c97b8d3d97260dad51c3e4224d8ca791))
-* expose more functions and types ([a97b000](https://github.com/loro-dev/loro-prosemirror/commit/a97b000c373066d95974ae0242a7a685ab2766d7))
-* initial working version ([38e1ad9](https://github.com/loro-dev/loro-prosemirror/commit/38e1ad908bfa2382f6a36d808b9c78085538db8f))
-* make `undo` and `redo` as ProseMirror commands ([#12](https://github.com/loro-dev/loro-prosemirror/issues/12)) ([b0a1bc1](https://github.com/loro-dev/loro-prosemirror/commit/b0a1bc12da9f4fc1b6c74cf759b2427a191ae2be))
-* support loro-crdt v1 ([901f50d](https://github.com/loro-dev/loro-prosemirror/commit/901f50d829da354de50846bd7f24bbd135f6485f))
-* sync selections ([#10](https://github.com/loro-dev/loro-prosemirror/issues/10)) ([56a7625](https://github.com/loro-dev/loro-prosemirror/commit/56a7625f40b924ccbb22d9b0f11ea69a54d9bd31))
-* undo ([#11](https://github.com/loro-dev/loro-prosemirror/issues/11)) ([aa4785b](https://github.com/loro-dev/loro-prosemirror/commit/aa4785ba75193128a0d608a4e9239f0a4431b554))
-* Upgrade to loro v0.13.0 API ([#1](https://github.com/loro-dev/loro-prosemirror/issues/1)) ([6898845](https://github.com/loro-dev/loro-prosemirror/commit/6898845a6b26bfcd9a9eba86f592cb0c2bab0d30))
-
-
-### Bug Fixes
-
-* avoid interrupting sync when checking canRedo/canUndo ([#40](https://github.com/loro-dev/loro-prosemirror/issues/40)) ([4c8456e](https://github.com/loro-dev/loro-prosemirror/commit/4c8456e11537ebc69452715830f28096eb8a12ea))
-* cursor mapping err and undo/redo issues ([#31](https://github.com/loro-dev/loro-prosemirror/issues/31)) ([ecdf9d1](https://github.com/loro-dev/loro-prosemirror/commit/ecdf9d1429b36acb1a2ecdccd6de28d118c1e390))
-* deps ([cb9c334](https://github.com/loro-dev/loro-prosemirror/commit/cb9c334ec1b9de792e3113ce5208a02bbc995710))
-* enable NPM OIDC publish ([#42](https://github.com/loro-dev/loro-prosemirror/issues/42)) ([0e35ee7](https://github.com/loro-dev/loro-prosemirror/commit/0e35ee79bbb114644b2f7b3635eb83262ac71c4a))
-* fix import path that was wrong in the initial version ([62a60ba](https://github.com/loro-dev/loro-prosemirror/commit/62a60bab69901eae905f3ca070910112f6c1dacd))
-* selection should not change after applying remote updates ([#29](https://github.com/loro-dev/loro-prosemirror/issues/29)) ([e2ddccd](https://github.com/loro-dev/loro-prosemirror/commit/e2ddccdf0d6d427491254977f4066c7e715a48e2))
-* undo/redo pos restore at the end of the text ([#35](https://github.com/loro-dev/loro-prosemirror/issues/35)) ([462d9fc](https://github.com/loro-dev/loro-prosemirror/commit/462d9fc6bee578eb8c8eabf84f78c7ddc7db5b9d))
-
-
-### Performance Improvements
-
-* use lib0's eqDepp impl ([9417f16](https://github.com/loro-dev/loro-prosemirror/commit/9417f162700b11a1df68e654b22e0c09ea27108f))
-
-
 ### Miscellaneous Chores
 
 * trigger a release ([725f680](https://github.com/loro-dev/loro-prosemirror/commit/725f6805e8f83df5fb980df06871914c6fe91df5))
 
-
-### Continuous Integration
-
-* add release workflow ([#14](https://github.com/loro-dev/loro-prosemirror/issues/14)) ([5437a33](https://github.com/loro-dev/loro-prosemirror/commit/5437a33752dd26e675a1928ebcaa9eabbc2de634))
-
 ## [0.3.3](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.2...v0.3.3) (2025-10-29)
-
 
 ### Bug Fixes
 
 * enable NPM OIDC publish ([#42](https://github.com/loro-dev/loro-prosemirror/issues/42)) ([0e35ee7](https://github.com/loro-dev/loro-prosemirror/commit/0e35ee79bbb114644b2f7b3635eb83262ac71c4a))
 
 ## [0.3.2](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.1...v0.3.2) (2025-10-27)
-
 
 ### Bug Fixes
 
