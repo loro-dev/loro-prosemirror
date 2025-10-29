@@ -1,7 +1,7 @@
 {
   "name": "loro-prosemirror",
   "version": "0.3.3",
-  "description": "Prosemirror Binding for Loro",
+  "description": "ProseMirror Binding for Loro",
   "packageManager": "pnpm@10.19.0",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
