@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.3](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.2...v0.3.3) (2025-10-29)
+
+
+### Bug Fixes
+
+* enable NPM OIDC publish ([#42](https://github.com/loro-dev/loro-prosemirror/issues/42)) ([0e35ee7](https://github.com/loro-dev/loro-prosemirror/commit/0e35ee79bbb114644b2f7b3635eb83262ac71c4a))
+
 ## [0.3.2](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.1...v0.3.2) (2025-10-27)
 
 
