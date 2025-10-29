@@ -18,6 +18,9 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     needs: [version]
     if: ${{ needs.version.outputs.release_created }}
     steps:
@@ -28,6 +31,4 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Publish to NPM
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm publish

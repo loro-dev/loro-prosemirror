@@ -33,6 +33,10 @@
   "dependencies": {
     "lib0": "^0.2.42"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "peerDependencies": {
     "loro-crdt": "^1.4.0",
     "prosemirror-model": "^1.18.1",
