@@ -122,10 +122,10 @@ function renderConnections(
     const connectionA = row.cur_tids.indexOf(thread.tid);
     const connectionB = thread.dep_on_active ? row.active_index : -1;
     if (connectionA >= 0) {
-      ans.push(renderConnection(type, i, connectionA, y, thread.tid));
+      ans.push(renderConnection("a", type, i, connectionA, y, thread.tid));
     }
     if (connectionB >= 0) {
-      ans.push(renderConnection(type, i, connectionB, y, thread.tid));
+      ans.push(renderConnection("b", type, i, connectionB, y, thread.tid));
     }
   });
 
@@ -133,6 +133,7 @@ function renderConnections(
 }
 
 function renderConnection(
+  source: "a" | "b",
   type: "input" | "output",
   xFrom: number,
   xTo: number,
@@ -163,7 +164,7 @@ function renderConnection(
 
   return (
     <path
-      key={`connection-${type}-${tid}-${xFrom}-${xTo}`}
+      key={`connection-${source}-${type}-${tid}-${xFrom}-${xTo}`}
       d={path}
       fill="none"
       stroke={tidToColor(tid)}
