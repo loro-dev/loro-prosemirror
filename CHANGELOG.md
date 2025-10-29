@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.5](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.4...v0.3.5) (2025-10-29)
+
+
+### Miscellaneous Chores
+
+* trigger a release ([e969787](https://github.com/loro-dev/loro-prosemirror/commit/e969787a0f000e96352d74d9e458359ad7d1995c))
+
 ## [0.3.4](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.3...v0.3.4) (2025-10-29)
 
 ### Miscellaneous Chores
