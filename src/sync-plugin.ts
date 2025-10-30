@@ -1,18 +1,6 @@
-import type {
-  ContainerID,
-  Cursor,
-  LoroDoc,
-  LoroEventBatch,
-  LoroMap,
-  Subscription,
-} from "loro-crdt";
+import type { Cursor, LoroEventBatch, LoroMap } from "loro-crdt";
 import { Fragment, Slice } from "prosemirror-model";
-import {
-  type EditorState,
-  Plugin,
-  PluginKey,
-  type StateField,
-} from "prosemirror-state";
+import { type EditorState, Plugin, type StateField } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 
 import {
@@ -29,12 +17,13 @@ import {
   safeSetSelection,
   updateLoroToPmState,
 } from "./lib";
+import {
+  loroSyncPluginKey,
+  type LoroSyncPluginProps,
+  type LoroSyncPluginState,
+} from "./sync-plugin-key";
 import { configLoroTextStyle } from "./text-style";
-import { loroUndoPluginKey } from "./undo-plugin";
-
-export const loroSyncPluginKey = new PluginKey<LoroSyncPluginState>(
-  "loro-sync",
-);
+import { loroUndoPluginKey } from "./undo-plugin-key";
 
 type PluginTransactionType =
   | {
@@ -47,21 +36,6 @@ type PluginTransactionType =
       type: "update-state";
       state: Partial<LoroSyncPluginState>;
     };
-
-export interface LoroSyncPluginProps {
-  doc: LoroDocType;
-  mapping?: LoroNodeMapping;
-  containerId?: ContainerID;
-}
-
-export interface LoroSyncPluginState extends LoroSyncPluginProps {
-  changedBy: "local" | "import" | "checkout";
-  mapping: LoroNodeMapping;
-  snapshot?: LoroDoc | null;
-  view?: EditorView;
-  containerId?: ContainerID;
-  docSubscription?: Subscription | null;
-}
 
 export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
   return new Plugin({

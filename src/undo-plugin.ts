@@ -1,32 +1,22 @@
 import type { Cursor } from "loro-crdt";
-import { LoroDoc, UndoManager } from "loro-crdt";
+import { UndoManager } from "loro-crdt";
 import {
   type Command,
   EditorState,
   Plugin,
-  PluginKey,
   type StateField,
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { convertPmSelectionToCursors } from "./cursor-plugin";
-import { loroSyncPluginKey, syncCursorsToPmSelection } from "./sync-plugin";
+import { syncCursorsToPmSelection } from "./sync-plugin";
+import { loroSyncPluginKey } from "./sync-plugin-key";
 import { configLoroTextStyle } from "./text-style";
+import {
+  loroUndoPluginKey,
+  type LoroUndoPluginProps,
+  type LoroUndoPluginState,
+} from "./undo-plugin-key";
 
-export interface LoroUndoPluginProps {
-  doc: LoroDoc;
-  undoManager?: UndoManager;
-}
-
-export const loroUndoPluginKey = new PluginKey<LoroUndoPluginState>(
-  "loro-undo",
-);
-
-interface LoroUndoPluginState {
-  undoManager: UndoManager;
-  canUndo: boolean;
-  canRedo: boolean;
-  isUndoing: { current: boolean };
-}
 type Cursors = { anchor: Cursor | null; focus: Cursor | null };
 export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
   const undoManager = props.undoManager || new UndoManager(props.doc, {});

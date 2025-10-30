@@ -1,9 +1,9 @@
+export { LoroSyncPlugin } from "./sync-plugin";
 export {
-  LoroSyncPlugin,
   loroSyncPluginKey,
   type LoroSyncPluginProps,
   type LoroSyncPluginState,
-} from "./sync-plugin";
+} from "./sync-plugin-key";
 export {
   createNodeFromLoroObj,
   updateLoroToPmState,
@@ -21,12 +21,5 @@ export {
 } from "./lib";
 export { LoroCursorPlugin } from "./cursor-plugin";
 export { CursorAwareness } from "./awareness";
-export {
-  LoroUndoPlugin,
-  loroUndoPluginKey,
-  type LoroUndoPluginProps,
-  undo,
-  redo,
-  canUndo,
-  canRedo,
-} from "./undo-plugin";
+export { LoroUndoPlugin, undo, redo, canUndo, canRedo } from "./undo-plugin";
+export { loroUndoPluginKey, type LoroUndoPluginProps } from "./undo-plugin-key";
