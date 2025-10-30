@@ -1,20 +1,24 @@
-import {
-  type ContainerID,
+import type {
+  ContainerID,
+  Cursor,
   LoroDoc,
-  type LoroEventBatch,
+  LoroEventBatch,
   LoroMap,
-  type Subscription,
+  Subscription,
 } from "loro-crdt";
 import { Fragment, Slice } from "prosemirror-model";
 import {
-  EditorState,
+  type EditorState,
   Plugin,
   PluginKey,
   type StateField,
-  TextSelection,
 } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import type { EditorView } from "prosemirror-view";
 
+import {
+  convertPmSelectionToCursors,
+  cursorToAbsolutePosition,
+} from "./cursor-plugin";
 import {
   clearChangedNodes,
   createNodeFromLoroObj,
@@ -22,13 +26,10 @@ import {
   type LoroNodeContainerType,
   type LoroNodeMapping,
   ROOT_DOC_KEY,
+  safeSetSelection,
   updateLoroToPmState,
 } from "./lib";
 import { configLoroTextStyle } from "./text-style";
-import {
-  convertPmSelectionToCursors,
-  cursorToAbsolutePosition,
-} from "./cursor-plugin";
 import { loroUndoPluginKey } from "./undo-plugin";
 
 export const loroSyncPluginKey = new PluginKey<LoroSyncPluginState>(
@@ -227,25 +228,36 @@ function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
     type: "non-local-updates",
   });
   view.dispatch(tr);
-  Promise.resolve().then(() => {
-    if (anchor && focus) {
-      const state = loroSyncPluginKey.getState(
-        view.state,
-      ) as LoroSyncPluginState;
-      const anchorPos = cursorToAbsolutePosition(
-        anchor,
-        state.doc,
-        state.mapping,
-      )[0];
-      const focusPos =
-        focus && cursorToAbsolutePosition(focus, state.doc, state.mapping)[0];
-      const selection = TextSelection.create(
-        view.state.tr.doc,
-        anchorPos,
-        focusPos ?? undefined,
-      );
-      const tr = view.state.tr.setSelection(selection);
-      view.dispatch(tr);
-    }
+
+  if (anchor == null) {
+    return;
+  }
+  setTimeout(() => {
+    syncCursorsToPmSelection(view, anchor, focus);
   });
+}
+
+/**
+ * Update ProseMirror selection based on the given Loro cursors.
+ */
+export function syncCursorsToPmSelection(
+  view: EditorView,
+  anchor: Cursor,
+  focus?: Cursor,
+) {
+  const state = loroSyncPluginKey.getState(view.state);
+  if (!state) {
+    return;
+  }
+
+  const { doc, mapping } = state;
+  const anchorPos = cursorToAbsolutePosition(anchor, doc, mapping)[0];
+  const focusPos = focus && cursorToAbsolutePosition(focus, doc, mapping)[0];
+  if (anchorPos == null) {
+    return;
+  }
+
+  // If the cursors are synced faster than the document, then the cursors might
+  // be out of bounds. Thus, we need to check if the cursors are out of bounds.
+  safeSetSelection(view, anchorPos, focusPos);
 }

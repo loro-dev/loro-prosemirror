@@ -6,14 +6,10 @@ import {
   Plugin,
   PluginKey,
   type StateField,
-  TextSelection,
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import {
-  convertPmSelectionToCursors,
-  cursorToAbsolutePosition,
-} from "./cursor-plugin";
-import { loroSyncPluginKey } from "./sync-plugin";
+import { convertPmSelectionToCursors } from "./cursor-plugin";
+import { loroSyncPluginKey, syncCursorsToPmSelection } from "./sync-plugin";
 import { configLoroTextStyle } from "./text-style";
 
 export interface LoroUndoPluginProps {
@@ -130,35 +126,13 @@ export const LoroUndoPlugin = (props: LoroUndoPluginProps): Plugin => {
           return;
         }
 
-        const anchor = meta.cursors[0] ?? null;
-        const focus = meta.cursors[1] ?? null;
+        const anchor: Cursor | undefined = meta.cursors[0];
+        const focus: Cursor | undefined = meta.cursors[1];
         if (anchor == null) {
           return;
         }
-
         setTimeout(() => {
-          try {
-            const anchorPos = cursorToAbsolutePosition(
-              anchor,
-              loroState.doc,
-              loroState.mapping,
-            )[0];
-            const focusPos =
-              focus &&
-              cursorToAbsolutePosition(
-                focus,
-                loroState.doc,
-                loroState.mapping,
-              )[0];
-            const selection = TextSelection.create(
-              view.state.doc,
-              anchorPos,
-              focusPos ?? undefined,
-            );
-            view.dispatch(view.state.tr.setSelection(selection));
-          } catch (e) {
-            console.error(e);
-          }
+          syncCursorsToPmSelection(view, anchor, focus);
         }, 0);
       });
       return {

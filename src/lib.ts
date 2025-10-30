@@ -13,7 +13,8 @@ import {
   type Value,
 } from "loro-crdt";
 import { type Attrs, Mark, Node, Schema } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import { type EditorState, TextSelection } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
 
 export type LoroChildrenListType = LoroList<
   LoroMap<LoroNodeContainerType> | LoroText
@@ -690,4 +691,31 @@ export function clearChangedNodes(
       parentObj = parentObj!.parent();
     }
   }
+}
+
+/**
+ * Set a text selection between the given anchor and head positions. This
+ * function will ignore out-of-bounds positions, and find a valid selection near
+ * the given positions.
+ */
+export function safeSetSelection(
+  view: EditorView,
+  anchor: number,
+  head?: number,
+): void {
+  const doc = view.state.doc;
+  const docSize = doc.content.size;
+  if (
+    anchor < 0 ||
+    anchor > docSize ||
+    (head != null && (head < 0 || head > docSize))
+  ) {
+    return;
+  }
+
+  const $anchor = doc.resolve(anchor);
+  const $head = head != null ? doc.resolve(head) : undefined;
+
+  const selection = TextSelection.between($anchor, $head || $anchor);
+  view.dispatch(view.state.tr.setSelection(selection));
 }
