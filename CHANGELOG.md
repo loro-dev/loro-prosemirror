@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.6](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.5...v0.3.6) (2025-10-30)
+
+
+### Bug Fixes
+
+* ignore out-of-bounds positions ([#47](https://github.com/loro-dev/loro-prosemirror/issues/47)) ([d3481fd](https://github.com/loro-dev/loro-prosemirror/commit/d3481fdd354e24fd1f5062f1bfb5933439b91f63))
+
 ## [0.3.5](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.4...v0.3.5) (2025-10-29)
 
 
