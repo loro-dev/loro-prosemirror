@@ -21,7 +21,7 @@ import {
   type LoroNodeMapping,
   WEAK_NODE_TO_LORO_CONTAINER_MAPPING,
 } from "./lib";
-import { loroSyncPluginKey, type LoroSyncPluginState } from "./sync-plugin";
+import { loroSyncPluginKey, type LoroSyncPluginState } from "./sync-plugin-key";
 
 const loroCursorPluginKey = new PluginKey<{ awarenessUpdated: boolean }>(
   "loro-cursor",
