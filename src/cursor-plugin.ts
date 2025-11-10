@@ -185,6 +185,9 @@ export const LoroCursorPlugin = (
       const awarenessListener = (_: any, origin: string) => {
         if (origin !== "local") {
           setTimeout(() => {
+            if (view.isDestroyed) {
+              return;
+            }
             let tr = view.state.tr;
             tr.setMeta(loroCursorPluginKey, {
               awarenessUpdated: true,

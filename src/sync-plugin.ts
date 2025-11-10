@@ -114,6 +114,10 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
 
 // This is called when the plugin's state is associated with an editor view
 function init(view: EditorView) {
+  if (view.isDestroyed) {
+    return;
+  }
+
   const state = loroSyncPluginKey.getState(view.state) as LoroSyncPluginState;
 
   let docSubscription = state.docSubscription;
@@ -169,6 +173,10 @@ function init(view: EditorView) {
 }
 
 function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
+  if (view.isDestroyed) {
+    return;
+  }
+
   const state = loroSyncPluginKey.getState(view.state) as LoroSyncPluginState;
   state.changedBy = event.by;
   if (event.by === "local" && event.origin !== "undo") {
@@ -219,6 +227,10 @@ export function syncCursorsToPmSelection(
   anchor: Cursor,
   focus?: Cursor,
 ) {
+  if (view.isDestroyed) {
+    return;
+  }
+
   const state = loroSyncPluginKey.getState(view.state);
   if (!state) {
     return;
