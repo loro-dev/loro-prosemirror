@@ -101,7 +101,12 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
       return null;
     },
     view: (view: EditorView) => {
-      const timeoutId = setTimeout(() => init(view), 0);
+      const timeoutId = setTimeout(() => {
+        if (view.isDestroyed) {
+          return;
+        }
+        init(view)
+      }, 0);
       return {
         update: (_view: EditorView, _prevState: EditorState) => {},
         destroy: () => {
@@ -219,6 +224,10 @@ export function syncCursorsToPmSelection(
   anchor: Cursor,
   focus?: Cursor,
 ) {
+  if (view.isDestroyed) {
+    return;
+  }
+
   const state = loroSyncPluginKey.getState(view.state);
   if (!state) {
     return;
