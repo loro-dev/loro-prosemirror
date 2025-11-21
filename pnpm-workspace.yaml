@@ -1,3 +1,6 @@
 packages:
   - .
   - examples/*
+
+onlyBuiltDependencies:
+  - '@swc/core'
