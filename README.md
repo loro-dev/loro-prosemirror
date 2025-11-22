@@ -1,15 +1,15 @@
 # Prosemirror Binding for Loro
 
 - Sync document state with Loro
-- Sync cursors with Loro's Awareness and
+- Sync cursors with Loro's EphemeralStore (preferred) or legacy Awareness and
   [Cursor](https://loro.dev/docs/tutorial/cursor)
 - Undo/Redo in collaborative editing
 - [🎨 Try it online](https://main--6661e86e215da40180d90507.chromatic.com)
 
 ```ts
 import {
-  CursorAwareness,
-  LoroCursorPlugin,
+  CursorEphemeralStore,
+  LoroEphemeralCursorPlugin,
   LoroSyncPlugin,
   LoroUndoPlugin,
   redo,
@@ -20,7 +20,8 @@ import { EditorView } from "prosemirror-view";
 import { EditorState } from "prosemirror-state";
 
 const doc = new LoroDoc();
-const awareness = new CursorAwareness(doc.peerIdStr);
+const presence = new CursorEphemeralStore(doc.peerIdStr);
+
 const plugins = [
   ...pmPlugins,
   LoroSyncPlugin({ doc }),
@@ -30,7 +31,7 @@ const plugins = [
     "Mod-y": redo,
     "Mod-Shift-z": redo,
   }),
-  LoroCursorPlugin(awareness, {}),
+  LoroEphemeralCursorPlugin(presence, {}),
 ];
 const editor = new EditorView(editorDom, {
   state: EditorState.create({ doc, plugins }),

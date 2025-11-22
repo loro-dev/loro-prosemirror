@@ -19,7 +19,7 @@ export {
   type LoroContainer,
   type LoroType,
 } from "./lib";
-export { LoroCursorPlugin } from "./cursor-plugin";
-export { CursorAwareness } from "./awareness";
+export { CursorEphemeralStore, LoroEphemeralCursorPlugin } from "./cursor/ephemeral";
+export { CursorAwareness, LoroCursorPlugin } from "./cursor/awareness";
 export { LoroUndoPlugin, undo, redo, canUndo, canRedo } from "./undo-plugin";
 export { loroUndoPluginKey, type LoroUndoPluginProps } from "./undo-plugin-key";

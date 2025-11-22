@@ -1,4 +1,6 @@
 import { Awareness, Cursor, type PeerID } from "loro-crdt";
+import { createCursorPlugin, type CursorPluginOptions, type CursorPresenceStore } from "./common";
+import { PluginKey } from "prosemirror-state";
 
 export class CursorAwareness extends Awareness<{
   anchor: Uint8Array | null;
@@ -69,3 +71,42 @@ export function cursorEq(a?: Cursor | null, b?: Cursor | null) {
     a.containerId() === b.containerId()
   );
 }
+
+const loroCursorPluginKey = new PluginKey<{ presenceUpdated: boolean }>(
+  "loro-cursor",
+);
+
+const awarenessAdapter = (
+  awareness: CursorAwareness,
+): CursorPresenceStore => ({
+  getAll: () => awareness.getAll(),
+  getLocal: () => {
+    const state = awareness.getLocal();
+    if (!state) {
+      return undefined;
+    }
+
+    return {
+      anchor: state.anchor ?? undefined,
+      focus: state.focus ?? undefined,
+      user: state.user ?? undefined,
+    };
+  },
+  setLocal: (state) => awareness.setLocal(state),
+  subscribe: (listener) => {
+    const awarenessListener = (_: unknown, origin: string) =>
+      listener(origin === "local" ? "local" : "import");
+    awareness.addListener(awarenessListener);
+    return () => awareness.removeListener(awarenessListener);
+  },
+});
+
+export const LoroCursorPlugin = (
+  awareness: CursorAwareness,
+  options: CursorPluginOptions,
+) =>
+  createCursorPlugin(
+    loroCursorPluginKey,
+    awarenessAdapter(awareness),
+    options,
+  );
