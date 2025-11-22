@@ -2,16 +2,19 @@
 import type { Meta, StoryFn } from "@storybook/react";
 
 import { Editor } from "./Editor";
-import { LoroDoc, VersionVector, PeerID } from "loro-crdt";
+import { Cursor, LoroDoc, PeerID, VersionVector } from "loro-crdt";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { CursorAwareness, LoroDocType } from "loro-prosemirror";
+import {
+  CursorEphemeralStore,
+  LoroDocType,
+} from "loro-prosemirror";
 import { DagViewComponent } from "./DagView";
 import type { ViewDagNode } from "./DagView";
 import { convertSyncStepsToNodes } from "./editor-history";
 import { styles } from "./styles/CollaborativeEditor.styles";
 
-function applyCustom(
-  awareness: CursorAwareness,
+function applyCustomEphemeral(
+  store: CursorEphemeralStore,
   peerId: PeerID,
   payload: {
     anchor: Uint8Array | null;
@@ -22,9 +25,29 @@ function applyCustom(
     } | null;
   },
 ) {
-  const a = new CursorAwareness(peerId);
-  a.setLocalState(payload);
-  awareness.apply(a.encode([peerId]));
+  const temp = new CursorEphemeralStore(peerId);
+  temp.setLocal({
+    anchor: payload.anchor ? Cursor.decode(payload.anchor) : undefined,
+    focus: payload.focus ? Cursor.decode(payload.focus) : undefined,
+    user: payload.user ?? undefined,
+  });
+  const bytes = temp.encode(peerId);
+  store.apply(bytes);
+}
+
+function sendCursorState(
+  store: CursorEphemeralStore,
+  peerId: PeerID,
+  payload: {
+    anchor: Cursor;
+    focus: Cursor;
+    user: { name: string; color: string };
+  },
+) {
+  const temp = new CursorEphemeralStore(peerId);
+  temp.setLocal(payload);
+  const bytes = temp.encode(peerId);
+  store.apply(bytes);
 }
 
 const meta = {
@@ -41,20 +64,20 @@ export default meta;
 export const Basic = () => {
   const loroARef = useRef<LoroDocType>(new LoroDoc());
   const idA = loroARef.current.peerIdStr;
-  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
+  const presenceA = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idA));
 
   // Add debug cursor functionality
   const [debugPeerIdA, setDebugPeerIdA] = useState<PeerID | null>(null);
 
   const createDebugCursor = useCallback(() => {
-    const currentState = awarenessA.current.getLocalState();
+    const currentState = presenceA.current.getLocal();
     if (!currentState?.anchor || !currentState?.focus) return;
 
     const debugId =
       debugPeerIdA || (Math.random().toString(10).substring(2, 15) as PeerID);
     if (!debugPeerIdA) setDebugPeerIdA(debugId);
 
-    applyCustom(awarenessA.current, debugId, {
+    sendCursorState(presenceA.current, debugId, {
       user: { name: "Debug Cursor", color: "#ff00ff" },
       anchor: currentState.anchor,
       focus: currentState.focus,
@@ -78,7 +101,7 @@ export const Basic = () => {
           Add Debug Cursor
         </button>
       </div>
-      <Editor loro={loroARef.current} awareness={awarenessA.current} />
+      <Editor loro={loroARef.current} presence={presenceA.current} />
     </div>
   );
 };
@@ -91,7 +114,7 @@ export const BasicWithHistory = () => {
 
   const loroARef = useRef<LoroDocType>(new LoroDoc());
   const idA = loroARef.current.peerIdStr;
-  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
+  const presenceA = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idA));
 
   const DagView: StoryFn<{ nodes: ViewDagNode[]; frontiers: string[] }> = (
     args,
@@ -126,7 +149,7 @@ export const BasicWithHistory = () => {
           <div style={styles.editorContent}>
             <Editor
               loro={loroARef.current}
-              awareness={awarenessA.current}
+              presence={presenceA.current}
               containerId={loroARef.current.getMap("doc").id}
             />
           </div>
@@ -138,7 +161,7 @@ export const BasicWithHistory = () => {
   );
 };
 
-type UpdateType = "ephemeral" | "awareness" | "crdt";
+type UpdateType = "ephemeral" | "crdt";
 type UpdateMessage = {
   type: "update";
   updateType: UpdateType;
@@ -155,8 +178,6 @@ function parseMessage(data: Uint8Array): UpdateMessage {
           case 0:
             return "ephemeral";
           case 1:
-            return "awareness";
-          case 2:
             return "crdt";
           default:
             throw new Error(`Unknown update type: ${data[1]}`);
@@ -179,8 +200,7 @@ function encodeUpdateMessage(
 ): Uint8Array {
   const message = new Uint8Array(2 + payload.length);
   message[0] = 1;
-  message[1] =
-    updateType === "ephemeral" ? 0 : updateType === "awareness" ? 1 : 2;
+  message[1] = updateType === "ephemeral" ? 0 : 1;
   message.set(payload, 2);
   return message;
 }
@@ -188,24 +208,24 @@ function encodeUpdateMessage(
 export const Sync = () => {
   const loroARef = useRef<LoroDocType>(new LoroDoc());
   const idA = loroARef.current.peerIdStr;
-  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
+  const presenceA = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idA));
   const loroBRef = useRef<LoroDocType>(new LoroDoc());
   const idB = loroBRef.current.peerIdStr;
-  const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
+  const presenceB = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idB));
 
   // Add debug cursor functionality
   const [debugPeerIdA, setDebugPeerIdA] = useState<PeerID | null>(null);
   const [debugPeerIdB, setDebugPeerIdB] = useState<PeerID | null>(null);
 
   const createDebugCursorA = useCallback(() => {
-    const currentState = awarenessA.current.getLocalState();
+    const currentState = presenceA.current.getLocal();
     if (!currentState?.anchor || !currentState?.focus) return;
 
     const debugId =
       debugPeerIdA || (Math.random().toString(10).substring(2, 15) as PeerID);
     if (!debugPeerIdA) setDebugPeerIdA(debugId as PeerID);
 
-    applyCustom(awarenessA.current, debugId, {
+    sendCursorState(presenceA.current, debugId, {
       user: { name: "Debug A", color: "#ff00ff" },
       anchor: currentState.anchor,
       focus: currentState.focus,
@@ -213,14 +233,14 @@ export const Sync = () => {
   }, [debugPeerIdA]);
 
   const createDebugCursorB = useCallback(() => {
-    const currentState = awarenessB.current.getLocalState();
+    const currentState = presenceB.current.getLocal();
     if (!currentState?.anchor || !currentState?.focus) return;
 
     const debugId =
       debugPeerIdB || (Math.random().toString(10).substring(2, 15) as PeerID);
     if (!debugPeerIdB) setDebugPeerIdB(debugId as PeerID);
 
-    applyCustom(awarenessB.current, debugId, {
+    sendCursorState(presenceB.current, debugId, {
       user: { name: "Debug B", color: "#00ffff" },
       anchor: currentState.anchor,
       focus: currentState.focus,
@@ -248,18 +268,21 @@ export const Sync = () => {
         );
       }
     });
-    awarenessA.current.addListener((_state, origin) => {
-      if (origin === "local") {
-        awarenessB.current.apply(awarenessA.current.encode([idA]));
-      }
-    });
-    awarenessB.current.addListener((_state, origin) => {
-      if (origin === "local") {
-        awarenessA.current.apply(awarenessB.current.encode([idB]));
-      }
-    });
+    const unsubscribeEphemeralA = presenceA.current.subscribeLocalUpdates(
+      (bytes) => {
+        presenceB.current.apply(bytes);
+      },
+    );
+    const unsubscribeEphemeralB = presenceB.current.subscribeLocalUpdates(
+      (bytes) => {
+        presenceA.current.apply(bytes);
+      },
+    );
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      unsubscribeEphemeralA();
+      unsubscribeEphemeralB();
+    };
   }, []);
 
   return (
@@ -294,12 +317,12 @@ export const Sync = () => {
       </div>
       <Editor
         loro={loroARef.current}
-        awareness={awarenessA.current}
+        presence={presenceA.current}
         containerId={loroARef.current?.getMap("doc")?.id}
       />
       <Editor
         loro={loroBRef.current}
-        awareness={awarenessB.current}
+        presence={presenceB.current}
         containerId={loroARef.current?.getMap("doc")?.id}
       />
     </div>
@@ -314,10 +337,10 @@ export const SyncWithHistory = () => {
 
   const loroARef = useRef<LoroDocType>(new LoroDoc());
   const idA = loroARef.current.peerIdStr;
-  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
+  const presenceA = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idA));
   const loroBRef = useRef<LoroDocType>(new LoroDoc());
   const idB = loroBRef.current.peerIdStr;
-  const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
+  const presenceB = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idB));
 
   const DagView: StoryFn<{ nodes: ViewDagNode[]; frontiers: string[] }> = (
     args,
@@ -362,21 +385,22 @@ export const SyncWithHistory = () => {
       }
     });
 
-    awarenessA.current.addListener((_state, origin) => {
-      if (origin === "local") {
-        awarenessB.current.apply(awarenessA.current.encode([idA]));
-      }
-    });
-
-    awarenessB.current.addListener((_state, origin) => {
-      if (origin === "local") {
-        awarenessA.current.apply(awarenessB.current.encode([idB]));
-      }
-    });
+    const unsubscribeEphemeralA = presenceA.current.subscribeLocalUpdates(
+      (bytes) => {
+        presenceB.current.apply(bytes);
+      },
+    );
+    const unsubscribeEphemeralB = presenceB.current.subscribeLocalUpdates(
+      (bytes) => {
+        presenceA.current.apply(bytes);
+      },
+    );
 
     return () => {
       subscriptionA();
       subscriptionB();
+      unsubscribeEphemeralA();
+      unsubscribeEphemeralB();
     };
   }, [idA, idB]);
 
@@ -390,7 +414,7 @@ export const SyncWithHistory = () => {
           <div style={styles.editorContent}>
             <Editor
               loro={loroARef.current}
-              awareness={awarenessA.current}
+              presence={presenceA.current}
               containerId={loroARef.current.getMap("doc").id}
             />
           </div>
@@ -403,7 +427,7 @@ export const SyncWithHistory = () => {
           <div style={styles.editorContent}>
             <Editor
               loro={loroBRef.current}
-              awareness={awarenessB.current}
+              presence={presenceB.current}
               containerId={loroBRef.current.getMap("doc").id}
             />
           </div>
@@ -419,7 +443,7 @@ export const BroadcastChannelExample = () => {
   const bcA = useRef<BroadcastChannel>(new BroadcastChannel(`A`));
   const loroARef = useRef<LoroDocType>(new LoroDoc());
   const idA = loroARef.current.peerIdStr;
-  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
+  const presenceA = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idA));
   const [lastStateA, setLastStateA] = useState<VersionVector | undefined>();
   useEffect(() => {
     bcA.current.onmessage = (event) => {
@@ -428,8 +452,7 @@ export const BroadcastChannelExample = () => {
         // Handle different update types
         switch (parsedMessage.updateType) {
           case "ephemeral":
-            break;
-          case "awareness":
+            presenceA.current.apply(parsedMessage.payload);
             break;
           case "crdt":
             loroARef.current.import(parsedMessage.payload);
@@ -452,20 +475,21 @@ export const BroadcastChannelExample = () => {
         setLastStateA(loroARef.current.version());
       }
     });
-    awarenessA.current.addListener((_state, origin) => {
-      if (origin === "local") {
-        bcA.current.postMessage(
-          encodeUpdateMessage("awareness", awarenessA.current.encode([idA])),
-        );
-      }
-    });
+    const unsubscribePresence = presenceA.current.subscribeLocalUpdates(
+      (bytes) => {
+        bcA.current.postMessage(encodeUpdateMessage("ephemeral", bytes));
+      },
+    );
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      unsubscribePresence();
+    };
   }, []);
 
   return (
     <div>
-      <Editor loro={loroARef.current} awareness={awarenessA.current} />
+      <Editor loro={loroARef.current} presence={presenceA.current} />
     </div>
   );
 };
@@ -489,8 +513,8 @@ export const OfflineSyncWithHistory = () => {
   const idA = useMemo(() => loroARef.current.peerIdStr, []);
   const idB = useMemo(() => loroBRef.current.peerIdStr, []);
 
-  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
-  const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
+  const presenceA = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idA));
+  const presenceB = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idB));
 
   const DagView: StoryFn<{ nodes: ViewDagNode[]; frontiers: string[] }> = (
     args,
@@ -504,7 +528,7 @@ export const OfflineSyncWithHistory = () => {
   // Function to create debug cursor for Editor A
   const createDebugCursorA = useCallback(() => {
     // Get current cursor information
-    const currentState = awarenessA.current.getLocalState();
+    const currentState = presenceA.current.getLocal();
     if (!currentState?.anchor || !currentState?.focus) return;
 
     // Create a unique debug peer ID if not exists
@@ -513,7 +537,7 @@ export const OfflineSyncWithHistory = () => {
     if (!debugPeerIdA) setDebugPeerIdA(debugId as PeerID);
 
     // Apply a debug cursor using current position but different user
-    applyCustom(awarenessA.current, debugId, {
+    sendCursorState(presenceA.current, debugId, {
       user: { name: "Debug A", color: "#ff00ff" },
       anchor: currentState.anchor,
       focus: currentState.focus,
@@ -523,7 +547,7 @@ export const OfflineSyncWithHistory = () => {
   // Function to create debug cursor for Editor B
   const createDebugCursorB = useCallback(() => {
     // Get current cursor information
-    const currentState = awarenessB.current.getLocalState();
+    const currentState = presenceB.current.getLocal();
     if (!currentState?.anchor || !currentState?.focus) return;
 
     // Create a unique debug peer ID if not exists
@@ -532,7 +556,7 @@ export const OfflineSyncWithHistory = () => {
     if (!debugPeerIdB) setDebugPeerIdB(debugId as PeerID);
 
     // Apply a debug cursor using current position but different user
-    applyCustom(awarenessB.current, debugId, {
+    sendCursorState(presenceB.current, debugId, {
       user: { name: "Debug B", color: "#00ffff" },
       anchor: currentState.anchor,
       focus: currentState.focus,
@@ -598,27 +622,26 @@ export const OfflineSyncWithHistory = () => {
     });
 
     // Cursor synchronization
-    const listenerA = (_state: any, origin: any) => {
-      if (origin === "local" && isAOnline && isBOnline) {
-        awarenessB.current.apply(awarenessA.current.encode([idA]));
-      }
-    };
-    awarenessA.current.addListener(listenerA);
-
-    const listenerB = (_state: any, origin: any) => {
-      if (origin === "local" && isBOnline && isAOnline) {
-        awarenessA.current.apply(awarenessB.current.encode([idB]));
-      }
-    };
-    awarenessB.current.addListener(listenerB);
-    const a = awarenessA.current;
-    const b = awarenessA.current;
+    const unsubscribeEphemeralA = presenceA.current.subscribeLocalUpdates(
+      (bytes) => {
+        if (isAOnline && isBOnline) {
+          presenceB.current.apply(bytes);
+        }
+      },
+    );
+    const unsubscribeEphemeralB = presenceB.current.subscribeLocalUpdates(
+      (bytes) => {
+        if (isAOnline && isBOnline) {
+          presenceA.current.apply(bytes);
+        }
+      },
+    );
 
     return () => {
       subscriptionA();
       subscriptionB();
-      a.removeListener(listenerA);
-      b.removeListener(listenerB);
+      unsubscribeEphemeralA();
+      unsubscribeEphemeralB();
     };
   }, [isAOnline, isBOnline, idA, idB]);
 
@@ -675,7 +698,7 @@ export const OfflineSyncWithHistory = () => {
           <div style={styles.editorContent}>
             <Editor
               loro={loroARef.current}
-              awareness={awarenessA.current}
+              presence={presenceA.current}
               containerId={loroARef.current.getMap("doc").id}
             />
           </div>
@@ -707,7 +730,7 @@ export const OfflineSyncWithHistory = () => {
           <div style={styles.editorContent}>
             <Editor
               loro={loroBRef.current}
-              awareness={awarenessB.current}
+              presence={presenceB.current}
               containerId={loroBRef.current.getMap("doc").id}
             />
           </div>
@@ -743,11 +766,11 @@ export const MultiOfflineSyncWithHistory = () => {
   const idD = useMemo(() => loroDRef.current.peerIdStr, []);
   const idE = useMemo(() => loroERef.current.peerIdStr, []);
 
-  const awarenessA = useRef<CursorAwareness>(new CursorAwareness(idA));
-  const awarenessB = useRef<CursorAwareness>(new CursorAwareness(idB));
-  const awarenessC = useRef<CursorAwareness>(new CursorAwareness(idC));
-  const awarenessD = useRef<CursorAwareness>(new CursorAwareness(idD));
-  const awarenessE = useRef<CursorAwareness>(new CursorAwareness(idE));
+  const presenceA = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idA));
+  const presenceB = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idB));
+  const presenceC = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idC));
+  const presenceD = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idD));
+  const presenceE = useRef<CursorEphemeralStore>(new CursorEphemeralStore(idE));
 
   // Add keyboard shortcut to toggle all peers online/offline
   useEffect(() => {
@@ -886,33 +909,24 @@ export const MultiOfflineSyncWithHistory = () => {
       }),
     ];
 
-    // Cursor awareness
-    const setupAwareness = (
-      from: CursorAwareness,
-      fromId: string,
-      isFromOnline: boolean,
-    ) => {
-      const listener = (_state: any, origin: any) => {
-        if (origin === "local" && isFromOnline) {
-          const encoded = from.encode([`${parseInt(fromId)}`]);
-          if (isAOnline) awarenessA.current.apply(encoded);
-          if (isBOnline) awarenessB.current.apply(encoded);
-          if (isCOnline) awarenessC.current.apply(encoded);
-          if (isDOnline) awarenessD.current.apply(encoded);
-          if (isEOnline) awarenessE.current.apply(encoded);
-        }
-      };
-      from.addListener(listener);
-      return () => from.removeListener(listener);
-    };
-
-    const unsubscribers = [
-      setupAwareness(awarenessA.current, idA, isAOnline),
-      setupAwareness(awarenessB.current, idB, isBOnline),
-      setupAwareness(awarenessC.current, idC, isCOnline),
-      setupAwareness(awarenessD.current, idD, isDOnline),
-      setupAwareness(awarenessE.current, idE, isEOnline),
+    // Cursor presence
+    const stores = [
+      { store: presenceA.current, online: isAOnline },
+      { store: presenceB.current, online: isBOnline },
+      { store: presenceC.current, online: isCOnline },
+      { store: presenceD.current, online: isDOnline },
+      { store: presenceE.current, online: isEOnline },
     ];
+    const unsubscribers = stores.map(({ store, online }) =>
+      store.subscribeLocalUpdates((bytes) => {
+        if (!online) return;
+        if (isAOnline && store !== presenceA.current) presenceA.current.apply(bytes);
+        if (isBOnline && store !== presenceB.current) presenceB.current.apply(bytes);
+        if (isCOnline && store !== presenceC.current) presenceC.current.apply(bytes);
+        if (isDOnline && store !== presenceD.current) presenceD.current.apply(bytes);
+        if (isEOnline && store !== presenceE.current) presenceE.current.apply(bytes);
+      }),
+    );
 
     return () => {
       subscriptions.forEach((unsub) => unsub());
@@ -1009,7 +1023,7 @@ export const MultiOfflineSyncWithHistory = () => {
           <div style={styles.editorContent}>
             <Editor
               loro={loroARef.current}
-              awareness={awarenessA.current}
+              presence={presenceA.current}
               containerId={loroARef.current.getMap("doc").id}
             />
           </div>
@@ -1029,7 +1043,7 @@ export const MultiOfflineSyncWithHistory = () => {
           <div style={styles.editorContent}>
             <Editor
               loro={loroBRef.current}
-              awareness={awarenessB.current}
+              presence={presenceB.current}
               containerId={loroBRef.current.getMap("doc").id}
             />
           </div>
@@ -1049,7 +1063,7 @@ export const MultiOfflineSyncWithHistory = () => {
           <div style={styles.editorContent}>
             <Editor
               loro={loroCRef.current}
-              awareness={awarenessC.current}
+              presence={presenceC.current}
               containerId={loroCRef.current.getMap("doc").id}
             />
           </div>
@@ -1069,7 +1083,7 @@ export const MultiOfflineSyncWithHistory = () => {
           <div style={styles.editorContent}>
             <Editor
               loro={loroDRef.current}
-              awareness={awarenessD.current}
+              presence={presenceD.current}
               containerId={loroDRef.current.getMap("doc").id}
             />
           </div>
@@ -1089,7 +1103,7 @@ export const MultiOfflineSyncWithHistory = () => {
           <div style={styles.editorContent}>
             <Editor
               loro={loroERef.current}
-              awareness={awarenessE.current}
+              presence={presenceE.current}
               containerId={loroERef.current.getMap("doc").id}
             />
           </div>

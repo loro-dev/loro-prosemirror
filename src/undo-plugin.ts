@@ -7,7 +7,7 @@ import {
   type StateField,
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { convertPmSelectionToCursors } from "./cursor-plugin";
+import { convertPmSelectionToCursors } from "./cursor/common";
 import { syncCursorsToPmSelection } from "./sync-plugin";
 import { loroSyncPluginKey } from "./sync-plugin-key";
 import { configLoroTextStyle } from "./text-style";

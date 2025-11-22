@@ -13,28 +13,190 @@ import {
   DecorationSet,
 } from "prosemirror-view";
 
-import { CursorAwareness, cursorEq } from "./awareness";
 import {
   CHILDREN_KEY,
   type LoroDocType,
   type LoroNode,
   type LoroNodeMapping,
   WEAK_NODE_TO_LORO_CONTAINER_MAPPING,
-} from "./lib";
-import { loroSyncPluginKey, type LoroSyncPluginState } from "./sync-plugin-key";
+} from "../lib";
+import { loroSyncPluginKey, type LoroSyncPluginState } from "../sync-plugin-key";
 
-const loroCursorPluginKey = new PluginKey<{ awarenessUpdated: boolean }>(
-  "loro-cursor",
-);
+export type CursorUser = { name: string; color: string };
+export type CursorPresenceState = {
+  anchor?: Cursor;
+  focus?: Cursor;
+  user?: CursorUser;
+};
+
+export interface CursorPresenceStore {
+  getAll(): Record<PeerID, CursorPresenceState>;
+  getLocal(): CursorPresenceState | undefined;
+  setLocal(state: CursorPresenceState): void;
+  subscribe(listener: (by: "local" | "import" | "timeout") => void): () => void;
+}
+
+export interface CursorPluginOptions {
+  getSelection?: (state: EditorState) => Selection;
+  createCursor?: (user: PeerID) => Element;
+  createSelection?: (user: PeerID) => DecorationAttrs;
+  user?: CursorUser;
+}
+
+export const createCursorPlugin = (
+  pluginKey: PluginKey<{ presenceUpdated: boolean }>,
+  store: CursorPresenceStore,
+  options: CursorPluginOptions,
+): Plugin<DecorationSet> => {
+  const getSelection = options.getSelection || ((state) => state.selection);
+  const createSelection =
+    options.createSelection ||
+    ((user) => ({
+      class: "loro-selection",
+      "data-peer": user,
+      style: `background-color: rgba(228, 208, 102, 0.5)`,
+    }));
+  const createCursor =
+    options.createCursor ||
+    ((user) => {
+      const cursorUserData = store.getAll()[user];
+      const cursor = document.createElement("span");
+      cursor.classList.add("ProseMirror-loro-cursor");
+      cursor.setAttribute(
+        "style",
+        `border-color: ${cursorUserData?.user?.color ?? user.slice(0, 6)}`,
+      );
+      const userDiv = document.createElement("div");
+      userDiv.setAttribute(
+        "style",
+        `background-color: ${cursorUserData?.user?.color ?? user.slice(0, 6)}`,
+      );
+      userDiv.insertBefore(
+        document.createTextNode(cursorUserData?.user?.name ?? user.slice(0, 6)),
+        null,
+      );
+      const nonbreakingSpace1 = document.createTextNode("\u2060");
+      const nonbreakingSpace2 = document.createTextNode("\u2060");
+      cursor.insertBefore(nonbreakingSpace1, null);
+      cursor.insertBefore(userDiv, null);
+      cursor.insertBefore(nonbreakingSpace2, null);
+      return cursor;
+    });
+  const plugin: Plugin<DecorationSet> = new Plugin<DecorationSet>({
+    key: pluginKey,
+    state: {
+      init(_, state) {
+        return createDecorations(
+          state,
+          store,
+          plugin,
+          createSelection,
+          createCursor,
+        );
+      },
+      apply(tr, prevState, _oldState, newState) {
+        const loroState = loroSyncPluginKey.getState(newState);
+        const loroCursorState: { presenceUpdated: boolean } =
+          tr.getMeta(pluginKey);
+        if (
+          (loroState && loroState.changedBy !== "local") ||
+          (loroCursorState && loroCursorState.presenceUpdated)
+        ) {
+          return createDecorations(
+            newState,
+            store,
+            plugin,
+            createSelection,
+            createCursor,
+          );
+        }
+
+        return prevState.map(tr.mapping, tr.doc);
+      },
+    },
+    props: {
+      decorations: (state) => {
+        return plugin.getState(state);
+      },
+    },
+    view: (view) => {
+      const storeListener = (origin: "local" | "import" | "timeout") => {
+        if (origin !== "local") {
+          setTimeout(() => {
+            if (view.isDestroyed) {
+              return;
+            }
+            let tr = view.state.tr;
+            tr.setMeta(pluginKey, {
+              presenceUpdated: true,
+            });
+            view.dispatch(tr);
+          }, 0);
+        }
+      };
+
+      const updateCursorInfo = () => {
+        // This will be called whenever the view is updated
+        // We may need to optimize it
+        const loroState = loroSyncPluginKey.getState(view.state);
+        const current = store.getLocal();
+        if (loroState?.doc == null) {
+          return;
+        }
+
+        const pmRootNode = view.state.doc;
+        if (view.hasFocus()) {
+          const selection = getSelection(view.state);
+          const { anchor, focus } = convertPmSelectionToCursors(
+            pmRootNode,
+            selection,
+            loroState,
+          );
+          if (
+            current == null ||
+            !cursorEq(current.anchor, anchor) ||
+            !cursorEq(current.focus, focus)
+          ) {
+            store.setLocal({
+              user: options.user,
+              anchor,
+              focus,
+            });
+          } else {
+          }
+        } else if (current?.focus != null) {
+          store.setLocal({});
+        }
+      };
+
+      // Listen to presence store changes
+      const unsubscribe = store.subscribe(storeListener);
+      view.dom.addEventListener("focusin", updateCursorInfo);
+      view.dom.addEventListener("focusout", updateCursorInfo);
+
+      return {
+        update: updateCursorInfo,
+        destroy: () => {
+          view.dom.removeEventListener("focusin", updateCursorInfo);
+          view.dom.removeEventListener("focusout", updateCursorInfo);
+          unsubscribe();
+          store.setLocal({});
+        },
+      };
+    },
+  });
+
+  return plugin;
+};
 
 function createDecorations(
   state: EditorState,
-  awareness: CursorAwareness,
+  store: CursorPresenceStore,
   _plugin: Plugin<DecorationSet>,
   createSelection: (user: PeerID) => DecorationAttrs,
   createCursor: (user: PeerID) => Element,
 ): DecorationSet {
-  const all = awareness.getAll();
+  const all = store.getAll();
   const d: Decoration[] = [];
   const loroState = loroSyncPluginKey.getState(state);
   if (!loroState) {
@@ -73,8 +235,8 @@ function createDecorations(
         ),
       );
       if (focusCursorUpdate || anchorCursorUpdate) {
-        const existingLocalState = awareness.getLocalState();
-        awareness.setLocal({
+        const existingLocalState = store.getLocal();
+        store.setLocal({
           ...(existingLocalState?.user && {
             user: existingLocalState.user,
           }),
@@ -84,8 +246,8 @@ function createDecorations(
       }
     } else {
       if (focusCursorUpdate) {
-        const existingLocalState = awareness.getLocalState();
-        awareness.setLocal({
+        const existingLocalState = store.getLocal();
+        store.setLocal({
           ...(existingLocalState?.user && {
             user: existingLocalState.user,
           }),
@@ -99,157 +261,6 @@ function createDecorations(
   const decorations = DecorationSet.create(state.doc, d);
   return decorations;
 }
-
-export const LoroCursorPlugin = (
-  awareness: CursorAwareness,
-  options: {
-    getSelection?: (state: EditorState) => Selection;
-    createCursor?: (user: PeerID) => Element;
-    createSelection?: (user: PeerID) => DecorationAttrs;
-    user?: { name: string; color: string };
-  },
-) => {
-  const getSelection = options.getSelection || ((state) => state.selection);
-  const createSelection =
-    options.createSelection ||
-    ((user) => ({
-      class: "loro-selection",
-      "data-peer": user,
-      style: `background-color: rgba(228, 208, 102, 0.5)`,
-    }));
-  const createCursor =
-    options.createCursor ||
-    ((user) => {
-      const awarenessData = awareness.getAllStates();
-      const cursorUserData = awarenessData[user];
-      const cursor = document.createElement("span");
-      cursor.classList.add("ProseMirror-loro-cursor");
-      cursor.setAttribute(
-        "style",
-        `border-color: ${cursorUserData.user?.color ?? user.slice(0, 6)}`,
-      );
-      const userDiv = document.createElement("div");
-      userDiv.setAttribute(
-        "style",
-        `background-color: ${cursorUserData.user?.color ?? user.slice(0, 6)}`,
-      );
-      userDiv.insertBefore(
-        document.createTextNode(cursorUserData.user?.name ?? user.slice(0, 6)),
-        null,
-      );
-      const nonbreakingSpace1 = document.createTextNode("\u2060");
-      const nonbreakingSpace2 = document.createTextNode("\u2060");
-      cursor.insertBefore(nonbreakingSpace1, null);
-      cursor.insertBefore(userDiv, null);
-      cursor.insertBefore(nonbreakingSpace2, null);
-      return cursor;
-    });
-  const plugin: Plugin<DecorationSet> = new Plugin<DecorationSet>({
-    key: loroCursorPluginKey,
-    state: {
-      init(_, state) {
-        return createDecorations(
-          state,
-          awareness,
-          plugin,
-          createSelection,
-          createCursor,
-        );
-      },
-      apply(tr, prevState, _oldState, newState) {
-        const loroState = loroSyncPluginKey.getState(newState);
-        const loroCursorState: { awarenessUpdated: boolean } =
-          tr.getMeta(loroCursorPluginKey);
-        if (
-          (loroState && loroState.changedBy !== "local") ||
-          (loroCursorState && loroCursorState.awarenessUpdated)
-        ) {
-          return createDecorations(
-            newState,
-            awareness,
-            plugin,
-            createSelection,
-            createCursor,
-          );
-        }
-
-        return prevState.map(tr.mapping, tr.doc);
-      },
-    },
-    props: {
-      decorations: (state) => {
-        return plugin.getState(state);
-      },
-    },
-    view: (view) => {
-      const awarenessListener = (_: any, origin: string) => {
-        if (origin !== "local") {
-          setTimeout(() => {
-            if (view.isDestroyed) {
-              return;
-            }
-            let tr = view.state.tr;
-            tr.setMeta(loroCursorPluginKey, {
-              awarenessUpdated: true,
-            });
-            view.dispatch(tr);
-          }, 0);
-        }
-      };
-
-      const updateCursorInfo = () => {
-        // This will be called whenever the view is updated
-        // We may need to optimize it
-        const loroState = loroSyncPluginKey.getState(view.state);
-        const current = awareness.getLocal();
-        if (loroState?.doc == null) {
-          return;
-        }
-
-        const pmRootNode = view.state.doc;
-        if (view.hasFocus()) {
-          const selection = getSelection(view.state);
-          const { anchor, focus } = convertPmSelectionToCursors(
-            pmRootNode,
-            selection,
-            loroState,
-          );
-          if (
-            current == null ||
-            !cursorEq(current.anchor, anchor) ||
-            !cursorEq(current.focus, focus)
-          ) {
-            awareness.setLocal({
-              user: options.user,
-              anchor,
-              focus,
-            });
-          } else {
-          }
-        } else if (current?.focus != null) {
-          awareness.setLocal({});
-        }
-      };
-
-      // Listen to awareness changes
-      awareness.addListener(awarenessListener);
-      view.dom.addEventListener("focusin", updateCursorInfo);
-      view.dom.addEventListener("focusout", updateCursorInfo);
-
-      return {
-        update: updateCursorInfo,
-        destroy: () => {
-          view.dom.removeEventListener("focusin", updateCursorInfo);
-          view.dom.removeEventListener("focusout", updateCursorInfo);
-          awareness.removeListener(awarenessListener);
-          awareness.setLocal({});
-        },
-      };
-    },
-  });
-
-  return plugin;
-};
 
 export function convertPmSelectionToCursors(
   pmRootNode: Node,
@@ -266,11 +277,11 @@ export function convertPmSelectionToCursors(
     selection.head == selection.anchor
       ? anchor
       : absolutePositionToCursor(
-          pmRootNode,
-          selection.head,
-          loroState.doc as LoroDocType,
-          loroState.mapping,
-        );
+        pmRootNode,
+        selection.head,
+        loroState.doc as LoroDocType,
+        loroState.mapping,
+      );
   return { anchor, focus };
 }
 
@@ -358,6 +369,9 @@ export function cursorToAbsolutePosition(
   } else {
     const loroText = doc.getText(containerId);
     const pos = doc.getCursorPos(cursor);
+    if (!pos) {
+      return [1, undefined];
+    }
     update = pos.update;
     index += pos.offset;
     targetChildId = loroText.id;
@@ -395,4 +409,21 @@ export function cursorToAbsolutePosition(
   }
 
   return [index, update];
+}
+
+export function cursorEq(a?: Cursor | null, b?: Cursor | null) {
+  if (!a && !b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+
+  const aPos = a.pos();
+  const bPos = b.pos();
+  return (
+    aPos?.peer === bPos?.peer &&
+    aPos?.counter === bPos?.counter &&
+    a.containerId() === b.containerId()
+  );
 }

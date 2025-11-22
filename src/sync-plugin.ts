@@ -6,7 +6,7 @@ import type { EditorView } from "prosemirror-view";
 import {
   convertPmSelectionToCursors,
   cursorToAbsolutePosition,
-} from "./cursor-plugin";
+} from "./cursor/common";
 import {
   clearChangedNodes,
   createNodeFromLoroObj,
@@ -27,15 +27,15 @@ import { loroUndoPluginKey } from "./undo-plugin-key";
 
 type PluginTransactionType =
   | {
-      type: "doc-changed";
-    }
+    type: "doc-changed";
+  }
   | {
-      type: "non-local-updates";
-    }
+    type: "non-local-updates";
+  }
   | {
-      type: "update-state";
-      state: Partial<LoroSyncPluginState>;
-    };
+    type: "update-state";
+    state: Partial<LoroSyncPluginState>;
+  };
 
 export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
   return new Plugin({
@@ -103,7 +103,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
     view: (view: EditorView) => {
       const timeoutId = setTimeout(() => init(view), 0);
       return {
-        update: (_view: EditorView, _prevState: EditorState) => {},
+        update: (_view: EditorView, _prevState: EditorState) => { },
         destroy: () => {
           clearTimeout(timeoutId);
         },
@@ -138,8 +138,8 @@ function init(view: EditorView) {
 
   const innerDoc = state.containerId
     ? (state.doc.getContainerById(
-        state.containerId,
-      ) as LoroMap<LoroNodeContainerType>)
+      state.containerId,
+    ) as LoroMap<LoroNodeContainerType>)
     : (state.doc as LoroDocType).getMap(ROOT_DOC_KEY);
 
   const mapping: LoroNodeMapping = new Map();
@@ -189,8 +189,8 @@ function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
     view.state.schema,
     state.containerId
       ? (state.doc.getContainerById(
-          state.containerId,
-        ) as LoroMap<LoroNodeContainerType>)
+        state.containerId,
+      ) as LoroMap<LoroNodeContainerType>)
       : (state.doc as LoroDocType).getMap(ROOT_DOC_KEY),
     mapping,
   );
