@@ -7,8 +7,8 @@ import { addListNodes } from "prosemirror-schema-list";
 import { exampleSetup } from "prosemirror-example-setup";
 import { useEffect, useRef } from "react";
 import {
-  CursorAwareness,
-  LoroCursorPlugin,
+  CursorEphemeralStore,
+  LoroEphemeralCursorPlugin,
   LoroDocType,
   LoroSyncPlugin,
   LoroUndoPlugin,
@@ -35,12 +35,12 @@ const plugins = exampleSetup({
 
 export function Editor({
   loro,
-  awareness,
+  presence,
   onCreateLoro,
   containerId,
 }: {
   loro?: LoroDocType;
-  awareness?: CursorAwareness;
+  presence?: CursorEphemeralStore;
   onCreateLoro?: (loro: LoroDocType) => void;
   containerId?: ContainerID;
 }) {
@@ -70,13 +70,13 @@ export function Editor({
         "Mod-Shift-z": (state) => redo(state, () => {}),
       }),
     ];
-    if (awareness) {
-      all.push(LoroCursorPlugin(awareness, {}));
+    if (presence) {
+      all.push(LoroEphemeralCursorPlugin(presence, {}));
     }
     editorRef.current = new EditorView(editorDom.current, {
       state: EditorState.create({ doc, plugins: all }),
     });
-  }, [awareness, onCreateLoro]);
+  }, [presence, onCreateLoro]);
 
   return (
     <div id="editor" style={{ minHeight: 200, margin: 16 }} ref={editorDom} />
