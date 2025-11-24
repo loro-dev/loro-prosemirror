@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.0](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.7...v0.4.0) (2025-11-24)
+
+
+### Features
+
+* use CursorEphemeralStore ([#54](https://github.com/loro-dev/loro-prosemirror/issues/54)) ([acb3d61](https://github.com/loro-dev/loro-prosemirror/commit/acb3d61df2963b6f3b14e9b618c2b381721dd84c))
+
 ## [0.3.7](https://github.com/loro-dev/loro-prosemirror/compare/v0.3.6...v0.3.7) (2025-11-10)
 
 
