@@ -39,3 +39,17 @@ const editor = new EditorView(editorDom, {
 ```
 
 https://github.com/loro-dev/prosemirror/assets/18425020/d0f01760-b76c-43b5-b7f7-b0b224130d9d
+
+## Syncing more than one editor instance
+
+In case you want to sync multiple ProseMirror editor instances to the same Loro document, you can define for each ProseMirror editor the [Container ID](https://loro.dev/docs/advanced/cid) into which the editor's content will be stored:
+
+```ts
+const doc = new LoroDoc();
+const map = doc.getMap("<unique-id-per-editor-instance>");
+
+const plugins = [
+  LoroSyncPlugin({ doc, containerId: map.id }),
+  // see above for other plugins
+];
+```
