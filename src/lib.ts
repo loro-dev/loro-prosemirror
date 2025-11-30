@@ -511,7 +511,7 @@ export function updateLoroMapAttributes(
 
   // remove all keys that are no longer in pAttrs
   for (const key of keys) {
-    pAttrs.delete(key);
+    attrs.delete(key);
   }
 }
 
