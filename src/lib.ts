@@ -146,7 +146,8 @@ export function createNodeFromLoroObj(
       try {
         const marks = [];
         for (const [markName, mark] of Object.entries(delta.attributes ?? {})) {
-          marks.push(schema.mark(markName, mark));
+          const markAttrs = valueToAttrs(mark);
+          marks.push(schema.mark(markName, markAttrs ?? undefined));
         }
         retval.push(schema.text(delta.insert, marks));
       } catch (e) {
@@ -251,6 +252,20 @@ function nodeMarksToAttributes(marks: readonly Mark[]): {
   return pattrs;
 }
 
+function valueToAttrs(
+  value: Value | Attrs | null | undefined,
+): Attrs | null {
+  if (
+    value != null &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    !(value instanceof Uint8Array)
+  ) {
+    return value as Attrs;
+  }
+  return null;
+}
+
 function eqLoroTextNodes(obj: LoroText, nodes: Node[]) {
   const delta = obj.toDelta();
   return (
@@ -259,9 +274,10 @@ function eqLoroTextNodes(obj: LoroText, nodes: Node[]) {
       (delta, i) =>
         delta.insert === nodes[i].text &&
         Object.keys(delta.attributes || {}).length === nodes[i].marks.length &&
-        nodes[i].marks.every((mark) =>
-          eqAttrs((delta.attributes || {})[mark.type.name], mark.attrs),
-        ),
+        nodes[i].marks.every((mark) => {
+          const attrs = valueToAttrs((delta.attributes || {})[mark.type.name]);
+          return attrs != null && eqAttrs(attrs, mark.attrs);
+        }),
     )
   );
 }
