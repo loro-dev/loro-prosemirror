@@ -1,5 +1,9 @@
 import { Awareness, Cursor, type PeerID } from "loro-crdt";
-import { createCursorPlugin, type CursorPluginOptions, type CursorPresenceStore } from "./common";
+import {
+  createCursorPlugin,
+  type CursorPluginOptions,
+  type CursorPresenceStore,
+} from "./common";
 import { PluginKey } from "prosemirror-state";
 
 export class CursorAwareness extends Awareness<{
@@ -76,9 +80,7 @@ const loroCursorPluginKey = new PluginKey<{ presenceUpdated: boolean }>(
   "loro-cursor",
 );
 
-const awarenessAdapter = (
-  awareness: CursorAwareness,
-): CursorPresenceStore => ({
+const awarenessAdapter = (awareness: CursorAwareness): CursorPresenceStore => ({
   getAll: () => awareness.getAll(),
   getLocal: () => {
     const state = awareness.getLocal();
@@ -105,8 +107,4 @@ export const LoroCursorPlugin = (
   awareness: CursorAwareness,
   options: CursorPluginOptions,
 ) =>
-  createCursorPlugin(
-    loroCursorPluginKey,
-    awarenessAdapter(awareness),
-    options,
-  );
+  createCursorPlugin(loroCursorPluginKey, awarenessAdapter(awareness), options);

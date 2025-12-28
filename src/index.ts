@@ -19,8 +19,15 @@ export {
   type LoroContainer,
   type LoroType,
 } from "./lib";
-export type { CursorPluginOptions, CursorPresenceState, CursorUser } from "./cursor/common";
-export { CursorEphemeralStore, LoroEphemeralCursorPlugin } from "./cursor/ephemeral";
+export type {
+  CursorPluginOptions,
+  CursorPresenceState,
+  CursorUser,
+} from "./cursor/common";
+export {
+  CursorEphemeralStore,
+  LoroEphemeralCursorPlugin,
+} from "./cursor/ephemeral";
 export { CursorAwareness, LoroCursorPlugin } from "./cursor/awareness";
 export { LoroUndoPlugin, undo, redo, canUndo, canRedo } from "./undo-plugin";
 export { loroUndoPluginKey, type LoroUndoPluginProps } from "./undo-plugin-key";
