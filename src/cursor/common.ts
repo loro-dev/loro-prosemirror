@@ -20,7 +20,10 @@ import {
   type LoroNodeMapping,
   WEAK_NODE_TO_LORO_CONTAINER_MAPPING,
 } from "../lib";
-import { loroSyncPluginKey, type LoroSyncPluginState } from "../sync-plugin-key";
+import {
+  loroSyncPluginKey,
+  type LoroSyncPluginState,
+} from "../sync-plugin-key";
 
 export type CursorUser = { name: string; color: string };
 export type CursorPresenceState = {
@@ -277,11 +280,11 @@ export function convertPmSelectionToCursors(
     selection.head == selection.anchor
       ? anchor
       : absolutePositionToCursor(
-        pmRootNode,
-        selection.head,
-        loroState.doc as LoroDocType,
-        loroState.mapping,
-      );
+          pmRootNode,
+          selection.head,
+          loroState.doc as LoroDocType,
+          loroState.mapping,
+        );
   return { anchor, focus };
 }
 

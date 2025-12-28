@@ -252,9 +252,7 @@ function nodeMarksToAttributes(marks: readonly Mark[]): {
   return pattrs;
 }
 
-function valueToAttrs(
-  value: Value | Attrs | null | undefined,
-): Attrs | null {
+function valueToAttrs(value: Value | Attrs | null | undefined): Attrs | null {
   if (
     value != null &&
     typeof value === "object" &&
