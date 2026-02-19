@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.3](https://github.com/loro-dev/loro-prosemirror/compare/v0.4.2...v0.4.3) (2026-02-19)
+
+
+### Bug Fixes
+
+* change module type to "module" ([#72](https://github.com/loro-dev/loro-prosemirror/issues/72)) ([050a9cc](https://github.com/loro-dev/loro-prosemirror/commit/050a9cc2e1912cdf9e43695feb3b1ee566547db1))
+
 ## [0.4.2](https://github.com/loro-dev/loro-prosemirror/compare/v0.4.1...v0.4.2) (2025-11-30)
 
 
