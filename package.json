@@ -3,13 +3,20 @@
   "version": "0.4.2",
   "description": "ProseMirror Binding for Loro",
   "packageManager": "pnpm@10.19.0",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
+  },
+  "sideEffects": false,
   "scripts": {
     "check-format": "prettier --check .",
     "format": "prettier --write .",
-    "build": "rollup -c",
+    "build": "tsdown",
     "test": "vitest run",
     "lint": "tsc --noEmit",
     "coverage": "vitest run --coverage"
@@ -32,20 +39,19 @@
   "author": "Loro Team",
   "license": "MIT",
   "dependencies": {
-    "lib0": "^0.2.42"
+    "lib0": "^0.2.42",
+    "prosemirror-model": "^1.18.1",
+    "prosemirror-state": "^1.4.1",
+    "prosemirror-view": "^1.28.0"
   },
   "files": [
     "dist",
     "src"
   ],
   "peerDependencies": {
-    "loro-crdt": "^1.10.2",
-    "prosemirror-model": "^1.18.1",
-    "prosemirror-state": "^1.4.1",
-    "prosemirror-view": "^1.28.0"
+    "loro-crdt": "^1.10.2"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^15.0.1",
     "@typescript-eslint/parser": "^7.4.0",
     "@vitest/coverage-v8": "^1.4.0",
     "chromatic": "^11.5.3",
@@ -53,12 +59,7 @@
     "lib0": "^0.2.93",
     "loro-crdt": "^1.10.2",
     "prettier": "^3.2.5",
-    "prosemirror-model": "^1.18.1",
-    "prosemirror-state": "^1.4.1",
-    "prosemirror-view": "^1.26.2",
-    "rollup": "^3.29.4",
-    "rollup-plugin-dts": "^5.3.1",
-    "rollup-plugin-esbuild": "^5.0.0",
+    "tsdown": "^0.20.3",
     "typescript": "^5.4.3",
     "vite": "^5.2.7",
     "vitest": "^1.4.0"
