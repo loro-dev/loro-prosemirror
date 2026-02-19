@@ -4,10 +4,7 @@ import type { Meta, StoryFn } from "@storybook/react";
 import { Editor } from "./Editor";
 import { Cursor, LoroDoc, PeerID, VersionVector } from "loro-crdt";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import {
-  CursorEphemeralStore,
-  LoroDocType,
-} from "loro-prosemirror";
+import { CursorEphemeralStore, LoroDocType } from "loro-prosemirror";
 import { DagViewComponent } from "./DagView";
 import type { ViewDagNode } from "./DagView";
 import { convertSyncStepsToNodes } from "./editor-history";
@@ -920,11 +917,16 @@ export const MultiOfflineSyncWithHistory = () => {
     const unsubscribers = stores.map(({ store, online }) =>
       store.subscribeLocalUpdates((bytes) => {
         if (!online) return;
-        if (isAOnline && store !== presenceA.current) presenceA.current.apply(bytes);
-        if (isBOnline && store !== presenceB.current) presenceB.current.apply(bytes);
-        if (isCOnline && store !== presenceC.current) presenceC.current.apply(bytes);
-        if (isDOnline && store !== presenceD.current) presenceD.current.apply(bytes);
-        if (isEOnline && store !== presenceE.current) presenceE.current.apply(bytes);
+        if (isAOnline && store !== presenceA.current)
+          presenceA.current.apply(bytes);
+        if (isBOnline && store !== presenceB.current)
+          presenceB.current.apply(bytes);
+        if (isCOnline && store !== presenceC.current)
+          presenceC.current.apply(bytes);
+        if (isDOnline && store !== presenceD.current)
+          presenceD.current.apply(bytes);
+        if (isEOnline && store !== presenceE.current)
+          presenceE.current.apply(bytes);
       }),
     );
 
