@@ -75,9 +75,7 @@ export function updateLoroToPmState(
   containerId?: ContainerID,
 ) {
   const node = editorState.doc;
-  const map = containerId
-    ? (doc.getContainerById(containerId) as LoroMap<LoroNodeContainerType>)
-    : doc.getMap(ROOT_DOC_KEY);
+  const map = getContainer(doc, containerId);
 
   let isInit = false;
   if (map.get("nodeName") == null) {
@@ -92,6 +90,27 @@ export function updateLoroToPmState(
   } else {
     doc.commit({ origin: "loroSyncPlugin" });
   }
+}
+
+function getContainer(
+  doc: LoroDocType,
+  containerId?: ContainerID,
+): LoroMap<LoroNodeContainerType> {
+  if (containerId == null) return doc.getMap(ROOT_DOC_KEY);
+
+  const container = doc.getContainerById(containerId);
+
+  if (container == null) {
+    throw new Error(
+      `Container with ID ${containerId} not found. Maybe the container is not attached to the document yet.`,
+    );
+  }
+
+  if (!(container instanceof LoroMap)) {
+    throw new Error(`Container with ID ${containerId} is not a LoroMap`);
+  }
+
+  return container as LoroMap<LoroNodeContainerType>;
 }
 
 export function createNodeFromLoroObj(
