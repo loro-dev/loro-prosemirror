@@ -370,7 +370,10 @@ export function cursorToAbsolutePosition(
     loroNode = parentNode.parent()?.parent() as LoroNode | undefined;
     index = 0;
   } else {
-    const loroText = doc.getText(containerId);
+    const loroText = doc.getContainerById(containerId) as LoroText | undefined;
+    if (!loroText) {
+      return [1, undefined];
+    }
     const pos = doc.getCursorPos(cursor);
     if (!pos) {
       return [1, undefined];
