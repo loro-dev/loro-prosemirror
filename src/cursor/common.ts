@@ -380,7 +380,12 @@ export function cursorToAbsolutePosition(
     targetChildId = loroText.id;
     loroNode = loroText.parent()?.parent() as LoroNode | undefined;
   }
-  while (loroNode != null) {
+  // Stop at the subtree the editor is BOUND to: when the synced container is not a root-level
+  // container (e.g. it lives inside a LoroTree/LoroMap document), ancestors above the bound root
+  // are not part of the mapping — walking into them mis-counts the position (their siblings are
+  // not ProseMirror nodes) and logs "Unreachable" errors. The bound root is the highest node the
+  // mapping knows.
+  while (loroNode != null && mapping.has(loroNode.id)) {
     const children = loroNode.get(CHILDREN_KEY);
     if (children instanceof LoroList) {
       const childIds = children.toArray() as LoroNode[];
