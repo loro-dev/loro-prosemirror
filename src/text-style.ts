@@ -9,7 +9,9 @@ function getLoroTextStyle(schema: Schema): {
   return Object.fromEntries(
     Object.entries(schema.marks).map(([markName, markType]) => [
       markName,
-      { expand: markType.spec.inclusive ? "after" : "none" },
+      // ProseMirror marks are inclusive unless the spec says otherwise, so
+      // only an explicit `inclusive: false` should map to "none".
+      { expand: markType.spec.inclusive !== false ? "after" : "none" },
     ]),
   );
 }
