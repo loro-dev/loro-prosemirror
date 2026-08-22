@@ -211,20 +211,12 @@ export function updateLoroText(
 ) {
   mapping.set(obj.id, nodes);
 
-  let str = obj.toString();
-  const attrs: { [key: string]: Attrs | null } = {};
-  for (const delta of obj.toDelta()) {
-    for (const key of Object.keys(delta.attributes ?? {})) {
-      attrs[key] = null;
-    }
-  }
-
   const content = nodes.map((p) => ({
     insert: p.text!,
-    attributes: Object.assign({}, attrs, nodeMarksToAttributes(p.marks)),
+    attributes: nodeMarksToAttributes(p.marks),
   }));
   const { insert, remove, index } = simpleDiff(
-    str,
+    obj.toString(),
     content.map((c) => c.insert).join(""),
   );
   if (remove > 0) {
@@ -234,12 +226,97 @@ export function updateLoroText(
     obj.insert(index, insert);
   }
 
-  obj.applyDelta(
-    content.map((c) => ({
-      retain: c.insert.length,
-      attributes: c.attributes,
-    })),
-  );
+  // Only apply marks over the ranges where the LoroText still disagrees with
+  // ProseMirror. Loro records every mark/unmark op it is asked to apply, even
+  // ones that don't change the visible styles (they still carry meaning under
+  // concurrent editing), so re-asserting the marks of the whole text on every
+  // change would emit style ops on every keystroke. After the text diff above,
+  // inserts already inherit the styles configured by `configLoroTextStyle`, so
+  // typing, deleting, and plain pastes need no style ops at all.
+  const styles = diffTextStyles(obj.toDelta(), content);
+  if (styles != null) {
+    obj.applyDelta(styles);
+  }
+}
+
+/**
+ * Computes the minimal delta that restyles `current` (what the LoroText
+ * holds) as `content` (what ProseMirror wants). The text of both sides must
+ * already be equal. Returns null when the styles already agree everywhere.
+ */
+function diffTextStyles(
+  current: Delta<string>[],
+  content: { insert: string; attributes: { [key: string]: Attrs } }[],
+): Delta<string>[] | null {
+  const styles: Delta<string>[] = [];
+  let i = 0;
+  let iUsed = 0;
+  let j = 0;
+  let jUsed = 0;
+  while (i < current.length && j < content.length) {
+    const currentRun = current[i];
+    const contentRun = content[j];
+    if (currentRun.insert == null) {
+      i += 1;
+      continue;
+    }
+
+    const length = Math.min(
+      currentRun.insert.length - iUsed,
+      contentRun.insert.length - jUsed,
+    );
+    if (length > 0) {
+      const patch = attributesPatch(
+        currentRun.attributes ?? {},
+        contentRun.attributes,
+      );
+      styles.push(
+        patch != null
+          ? { retain: length, attributes: patch }
+          : { retain: length },
+      );
+    }
+
+    iUsed += length;
+    if (iUsed === currentRun.insert.length) {
+      i += 1;
+      iUsed = 0;
+    }
+    jUsed += length;
+    if (jUsed === contentRun.insert.length) {
+      j += 1;
+      jUsed = 0;
+    }
+  }
+
+  while (styles.length > 0 && styles[styles.length - 1].attributes == null) {
+    styles.pop();
+  }
+  return styles.length > 0 ? styles : null;
+}
+
+/**
+ * Computes the attribute changes that turn `current` into `wanted`, or null
+ * if they are already equal.
+ */
+function attributesPatch(
+  current: { [key: string]: Value | Attrs },
+  wanted: { [key: string]: Attrs },
+): { [key: string]: Attrs | null } | null {
+  let patch: { [key: string]: Attrs | null } | null = null;
+  for (const [key, attrs] of Object.entries(wanted)) {
+    if (!equalityDeep(current[key], attrs)) {
+      patch = patch ?? {};
+      patch[key] = attrs;
+    }
+  }
+  for (const key of Object.keys(current)) {
+    if (!(key in wanted) && current[key] != null) {
+      patch = patch ?? {};
+      patch[key] = null;
+    }
+  }
+  return patch;
 }
 
 function nodeMarksToAttributes(marks: readonly Mark[]): {
