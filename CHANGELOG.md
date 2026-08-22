@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.4](https://github.com/loro-dev/loro-prosemirror/compare/v0.4.3...v0.4.4) (2026-08-22)
+
+
+### Bug Fixes
+
+* only emit style ops for ranges where marks actually changed ([31b85d1](https://github.com/loro-dev/loro-prosemirror/commit/31b85d19a14ca7931e38e57bbcf7ff7a7b987007))
+* only emit style ops for ranges where marks actually changed ([57277b6](https://github.com/loro-dev/loro-prosemirror/commit/57277b6dd33be84da480b0342807a3432c6a373e))
+* treat marks with unset inclusive as inclusive when configuring text style ([e954742](https://github.com/loro-dev/loro-prosemirror/commit/e9547422c8c0e65f349ebebc8cbce921752382a4))
+* treat marks with unset inclusive as inclusive when configuring text style ([c178b29](https://github.com/loro-dev/loro-prosemirror/commit/c178b294c36a44482fe34cb69f0ac6713e169fa2))
+
 ## [0.4.3](https://github.com/loro-dev/loro-prosemirror/compare/v0.4.2...v0.4.3) (2026-02-19)
 
 
