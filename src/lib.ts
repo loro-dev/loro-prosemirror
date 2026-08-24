@@ -594,7 +594,7 @@ export function updateLoroMapAttributes(
       if (!equalityDeep(attrs.get(key), value)) {
         attrs.set(key, value);
       }
-    } else {
+    } else if (keys.has(key)) {
       attrs.delete(key);
     }
     keys.delete(key);
