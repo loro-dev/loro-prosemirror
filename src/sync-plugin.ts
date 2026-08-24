@@ -83,7 +83,7 @@ export const LoroSyncPlugin = (props: LoroSyncPluginProps): Plugin => {
             state = { ...state, ...meta.state };
             state.doc.commit({
               origin: "sys:init",
-              timestamp: Date.now(),
+              timestamp: Math.floor(Date.now() / 1000),
             });
             break;
           default:
