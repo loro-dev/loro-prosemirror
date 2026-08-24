@@ -223,7 +223,13 @@ function createDecorations(
       doc as LoroDocType,
       loroState.mapping,
     );
-    d.push(Decoration.widget(focus, createCursor(peer as PeerID)));
+    d.push(
+      Decoration.widget(focus, createCursor(peer as PeerID), {
+        // Stable key per peer so ProseMirror reuses the widget DOM across
+        // redraws instead of recreating it (which makes the caret flash).
+        key: `loro-cursor-${peer}`,
+      }),
+    );
     if (!cursorEq(cursor.anchor, cursor.focus)) {
       const [anchor, anchorCursorUpdate] = cursorToAbsolutePosition(
         cursor.anchor,
@@ -327,7 +333,13 @@ function absolutePositionToCursor(
     const child = children.get(childIndex);
     childIndex += 1;
     if (child instanceof LoroText) {
-      return child.getCursor(index);
+      // A single block can hold more than one LoroText leaf (e.g. text split
+      // by a hard break). Only bind here if the offset falls within this leaf;
+      // otherwise consume its length and continue to the next child.
+      if (index <= child.length) {
+        return child.getCursor(index);
+      }
+      index -= child.length;
     } else {
       if (index == 0) {
         // This happens when user selects an image or a horizontal rule
@@ -407,7 +419,12 @@ export function cursorToAbsolutePosition(
       loroNode = loroNode.parent()?.parent() as LoroNode | undefined;
       index += 1;
     } else {
-      throw new Error("Unreachable code");
+      // We have walked out of the editor's own subtree. This happens when the
+      // editor is bound to a nested container (`containerId`) rather than the
+      // doc root: the walk climbs past the bound node into the surrounding
+      // document, whose children are not a ProseMirror child list. Stop here
+      // and return the position accumulated within the editor subtree.
+      break;
     }
   }
 

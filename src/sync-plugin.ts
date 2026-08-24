@@ -1,6 +1,11 @@
 import type { Cursor, LoroEventBatch, LoroMap } from "loro-crdt";
 import { Fragment, Slice } from "prosemirror-model";
-import { type EditorState, Plugin, type StateField } from "prosemirror-state";
+import {
+  type EditorState,
+  Plugin,
+  type StateField,
+  TextSelection,
+} from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
 
 import {
@@ -184,6 +189,13 @@ function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
   }
 
   const mapping = state.mapping;
+  // Capture the local selection as stable Loro cursors BEFORE clearing changed
+  // nodes, which mutates the mapping this conversion relies on.
+  const { anchor, focus } = convertPmSelectionToCursors(
+    view.state.doc,
+    view.state.selection,
+    state,
+  );
   clearChangedNodes(state.doc as LoroDocType, event, mapping);
   const node = createNodeFromLoroObj(
     view.state.schema,
@@ -193,11 +205,6 @@ function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
         ) as LoroMap<LoroNodeContainerType>)
       : (state.doc as LoroDocType).getMap(ROOT_DOC_KEY),
     mapping,
-  );
-  const { anchor, focus } = convertPmSelectionToCursors(
-    view.state.doc,
-    view.state.selection,
-    state,
   );
 
   let tr = view.state.tr.replace(
@@ -209,14 +216,29 @@ function updateNodeOnLoroEvent(view: EditorView, event: LoroEventBatch) {
   tr.setMeta(loroSyncPluginKey, {
     type: "non-local-updates",
   });
-  view.dispatch(tr);
 
-  if (anchor == null) {
-    return;
+  // Restore the local selection in the SAME transaction as the content
+  // replacement, so the caret does not visibly jump to the document boundary
+  // (and back a tick later) when a remote peer edits elsewhere. Cursors
+  // resolved against the rebuilt doc can be out of bounds if presence arrives
+  // ahead of content, so bounds-check before applying.
+  if (anchor != null) {
+    const anchorPos = cursorToAbsolutePosition(anchor, state.doc, mapping)[0];
+    const focusPos =
+      focus && cursorToAbsolutePosition(focus, state.doc, mapping)[0];
+    const docSize = tr.doc.content.size;
+    if (
+      anchorPos >= 0 &&
+      anchorPos <= docSize &&
+      (focusPos == null || (focusPos >= 0 && focusPos <= docSize))
+    ) {
+      const $anchor = tr.doc.resolve(anchorPos);
+      const $focus = focusPos != null ? tr.doc.resolve(focusPos) : $anchor;
+      tr.setSelection(TextSelection.between($anchor, $focus));
+    }
   }
-  setTimeout(() => {
-    syncCursorsToPmSelection(view, anchor, focus);
-  });
+
+  view.dispatch(tr);
 }
 
 /**
